@@ -389,13 +389,17 @@ class Machine(object) :
         self.elements = {}
         self.prototypes = {}
         self.sequence = []
+
         self.lenint    = [] # array of length upto a sequence element
+        self.startface = [] # normal vector of face at start of element
+        self.endface = [] # normal vector of face at end of element
         self.midrotationint = [] # rotation compounded
         self.endrotationint = [] # rotation compounded
         self.midint = [] # mid point transformed
         self.endint = [] # end point tranformed
         self.midgeomint = [] # mid point along chord
         self.endgeomint = [] # end point along chord
+
         self.length = 0
         self.maxx = 0.0
         self.maxy = 0.0
