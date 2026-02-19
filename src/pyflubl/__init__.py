@@ -7,7 +7,7 @@ except ImportError:
 
 from .Options import Options
 from . import Builder
-from . import Convert
+# from . import Convert
 from . import Fluka
 from . import Analysis
 
