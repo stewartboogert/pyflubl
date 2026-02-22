@@ -176,6 +176,7 @@ class Coordinates(object) :
         self.elements = {}
 
         self.element_name = []
+        self.element_category = []
         self.element_length = []
         self.element_theta = []
         self.element_psi   = []
@@ -235,6 +236,9 @@ class Coordinates(object) :
             # length
             self.element_length.append(e.length)
 
+            # category
+            self.element_category.append(e.category)
+
             # bending angle
             try :
                 self.element_theta.append(e['angle'])
@@ -289,6 +293,7 @@ class Coordinates(object) :
         dict_to_save = {}
 
         dict_to_save['element_name'] = self.element_name
+        dict_to_save['element_category'] = self.element_category
         dict_to_save['element_length'] = self.element_length
         dict_to_save['element_theta'] = self.element_theta
         dict_to_save['element_psi'] = self.element_psi
@@ -325,6 +330,7 @@ class Coordinates(object) :
             data = _json.load(f)
 
             self.element_name = data['element_name']
+            self.element_category = data['element_category']
             self.element_length = data['element_length']
             self.element_theta = data['element_theta']
             self.element_psi = data['element_psi']
