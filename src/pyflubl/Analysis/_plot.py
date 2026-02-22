@@ -182,3 +182,9 @@ def _makeBoundingRect(centre, size, angle) :
                                angle=angle / _np.pi * 180, fill=False,
                                color=(1.0,0,0))
 
+def _makeBoundingTrap(centre, size, angle, e1, e2) :
+    cen = _np.array(centre)
+    size  = _np.array(size)
+    rr = _np.array([[_np.cos(angle), -_np.sin(angle)],
+                    [_np.sin(angle),  _np.cos(angle)]])
+    ll = cen - rr @ size/2
