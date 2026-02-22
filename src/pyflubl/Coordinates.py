@@ -224,6 +224,9 @@ class Coordinates(object) :
         if addToSequence:
             self.sequence.append(item.name)
 
+    def __len__(self):
+        return len(self.element_name)
+
     def Build(self):
 
         for element_name in self.elements :
