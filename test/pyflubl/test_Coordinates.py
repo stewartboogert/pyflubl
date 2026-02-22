@@ -30,7 +30,6 @@ def test_T001_drift_many_coordinates() :
 
     return c
 
-
 def test_T002_rbend_coordinates() :
     m = _pfbl.Builder.Machine()
     e = m.AddRBend("rb1", length=1, angle=0.05)
