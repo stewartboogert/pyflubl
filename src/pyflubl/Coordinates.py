@@ -263,20 +263,27 @@ class Coordinates(object) :
                 self.fac_sta.append(t['fac_sta'])
                 self.fac_end.append(t['fac_end'])
             else:
-                self.len_sta.append(self.len_end[-1] + 0)
-                self.len_mid.append(self.len_end[-1] + e.length/2.0)
-                self.len_end.append(self.len_end[-1] + e.length)
-                self.rot_sta.append(t['rot_sta'] @ self.rot_end[-1])
-                self.rot_mid.append(t['rot_mid'] @ self.rot_end[-1])
-                self.rot_end.append(t['rot_end'] @ self.rot_end[-1])
-                self.arc_sta.append(self.rot_end[-1] @ t['arc_sta'] + self.arc_end[-1])
-                self.arc_mid.append(self.rot_end[-1] @ t['arc_mid'] + self.arc_end[-1])
-                self.arc_end.append(self.rot_end[-1] @ t['arc_end'] + self.arc_end[-1])
-                self.cho_sta.append(self.rot_end[-1] @ t['cho_sta'] + self.arc_end[-1])
-                self.cho_mid.append(self.rot_end[-1] @ t['cho_mid'] + self.arc_end[-1])
-                self.cho_end.append(self.rot_end[-1] @ t['cho_end'] + self.arc_end[-1])
-                self.fac_sta.append(self.rot_end[-1] @ t['fac_sta'])
-                self.fac_end.append(self.rot_end[-1] @ t['fac_end'])
+                # get last element variables
+                len_end = self.len_end[-1]
+                rot_end = self.rot_end[-1]
+                arc_end = self.arc_end[-1]
+
+                self.len_sta.append(len_end + 0)
+                self.len_mid.append(len_end + e.length/2.0)
+                self.len_end.append(len_end + e.length)
+
+                self.rot_sta.append(t['rot_sta'] @ rot_end)
+                self.rot_mid.append(t['rot_mid'] @ rot_end)
+                self.rot_end.append(t['rot_end'] @ rot_end)
+
+                self.arc_sta.append(rot_end @ t['arc_sta'] + arc_end)
+                self.arc_mid.append(rot_end @ t['arc_mid'] + arc_end)
+                self.arc_end.append(rot_end @ t['arc_end'] + arc_end)
+                self.cho_sta.append(rot_end @ t['cho_sta'] + arc_end)
+                self.cho_mid.append(rot_end @ t['cho_mid'] + arc_end)
+                self.cho_end.append(rot_end @ t['cho_end'] + arc_end)
+                self.fac_sta.append(rot_end @ t['fac_sta'])
+                self.fac_end.append(rot_end @ t['fac_end'])
 
     def SaveJSON(self, file_name, indent = 0):
         dict_to_save = {}
