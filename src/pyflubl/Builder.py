@@ -542,6 +542,7 @@ class Machine(object) :
         self._CheckElementKwargs(kwargs, self._beampipe_allowed_keys + self._outer_allowed_keys)
         e = Element(name=name, category="drift", length=length, **kwargs)
         self.Append(e)
+        return e
 
     def AddRBend(self, name, length,  **kwargs):
         self._CheckElementKwargs(kwargs,
@@ -551,6 +552,7 @@ class Machine(object) :
                                  self._tiltshift_allowed_keys)
         e = Element(name=name, category="rbend", length=length, **kwargs)
         self.Append(e)
+        return e
 
     def AddSBend(self, name, length, **kwargs):
         self._CheckElementKwargs(kwargs,
@@ -560,6 +562,7 @@ class Machine(object) :
                                  self._tiltshift_allowed_keys)
         e = Element(name=name, category="sbend", length = length, **kwargs)
         self.Append(e)
+        return e
 
     def AddSBendSplit(self, name, length, nsplit=10, **kwargs):
         angle = kwargs.pop('angle')/nsplit
@@ -578,6 +581,7 @@ class Machine(object) :
 
         e = Element(name=name, category="quadrupole", length = length, **kwargs)
         self.Append(e)
+        return e
 
 
     def AddTarget(self, name, length, **kwargs):
@@ -588,6 +592,7 @@ class Machine(object) :
 
         e = Element(name=name, category="target", length = length, **kwargs)
         self.Append(e)
+        return e
 
     def AddRCol(self, name, length, **kwargs):
         self._CheckElementKwargs(kwargs,
@@ -597,6 +602,7 @@ class Machine(object) :
 
         e = Element(name=name, category="rcol", length = length, **kwargs)
         self.Append(e)
+        return e
 
     def AddECol(self, name, length, **kwargs):
         self._CheckElementKwargs(kwargs,
@@ -606,6 +612,7 @@ class Machine(object) :
 
         e = Element(name=name, category="ecol", length = length, **kwargs)
         self.Append(e)
+        return e
 
     def AddJCol(self, name, length, **kwargs):
         self._CheckElementKwargs(kwargs,
@@ -615,6 +622,7 @@ class Machine(object) :
 
         e = Element(name=name, category="jcol", length = length, **kwargs)
         self.Append(e)
+        return e
 
 
     def AddShield(self, name, length, **kwargs):
@@ -626,6 +634,7 @@ class Machine(object) :
 
         e = Element(name=name, category="shield", length = length, **kwargs)
         self.Append(e)
+        return e
 
     def AddDump(self, name, length, **kwargs):
         self._CheckElementKwargs(kwargs,
@@ -635,6 +644,7 @@ class Machine(object) :
 
         e = Element(name=name, category="dump", length = length, **kwargs)
         self.Append(e)
+        return e
 
     def AddWireScanner(self, name, length, **kwargs):
         self._CheckElementKwargs(kwargs,
@@ -645,18 +655,21 @@ class Machine(object) :
 
         e = Element(name=name, category="wirescanner", length = length, **kwargs)
         self.Append(e)
+        return e
 
     def AddGap(self, name, length, **kwargs):
         self._CheckElementKwargs(kwargs,self._outer_allowed_keys)
 
         e = ElementGap(name, length)
         self.Append(e)
+        return e
 
     def AddCustomG4(self, name, length, **kwargs):
         self._CheckElementKwargs(kwargs,self._customg4_allowed_keys)
 
         e = ElementCustomG4(name, length, containerLV = kwargs['customLV'], convertMaterials=kwargs['convertMaterials'])
         self.Append(e)
+        return e
 
     def AddCustomG4File(self, name, length, **kwargs):
         self._CheckElementKwargs(kwargs,self._customg4file_allowed_keys)
@@ -681,6 +694,7 @@ class Machine(object) :
                                customRegions = kwargs['customRegions'],
                                flukaRegistry = kwargs['flukaRegistry'])
         self.Append(e)
+        return e
 
     def AddCustomFlukaFile(self, name, length, **kwargs):
         self._CheckElementKwargs(kwargs,self._customflukafile_allowed_keys)
@@ -707,6 +721,7 @@ class Machine(object) :
                     length=self.prototypes[prototypeName].length,
                     prototypeName=prototypeName)
         self.Append(e)
+        return e
 
     def AddLatticePrototype(self, name, length, **kwargs):
         e = Element(name=name,
@@ -716,7 +731,7 @@ class Machine(object) :
         # save in prototype dict
         # transformation to be populated when built
         self.prototypes[name] = {"element":e, "rotation":None, "translation":None}
-
+        return e
 
     def AddScoringHistogram(self):
         pass

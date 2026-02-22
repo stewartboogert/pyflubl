@@ -6,6 +6,7 @@ except ImportError:
     __version_tuple__ = (0, 0, "unknown version")
 
 from .Options import Options
+from . import Coordinates
 from . import Builder
 from . import Fluka
 from . import Analysis
