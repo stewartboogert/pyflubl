@@ -116,9 +116,9 @@ def plot_machine_xz(machine) :
         ename  = m.sequence[eidx]
         e = m.elements[ename]
 
-        x, y, z = [1000*v for v in m.midint[eidx]]
-        xg, yg, zg = [1000*v for v in m.midgeomint[eidx]]
-        xe, ye, ze = [1000*v for v in m.endint[eidx]]
+        x, y, z       = [1000*v for v in m.midint[eidx]]
+        xg, yg, zg    = [1000*v for v in m.midgeomint[eidx]]
+        xe, ye, ze    = [1000*v for v in m.endint[eidx]]
         xeg, yeg, zeg = [1000*v for v in m.endgeomint[eidx]]
 
         vp = _np.array(m.midrotationint[eidx]) @ _np.array([0,0,1])
@@ -137,7 +137,22 @@ def plot_machine_xz(machine) :
         _plt.plot(ze,xe,"+", color=(1,0,0))
         _plt.plot(zeg,xeg,"x", color=(1,1,0))
 
-        bounding_box = _makeBoundingRect([zg,xg], [length*1000, width], yr1)
+        # bounding_box = _makeBoundingRect([zg,xg], [length*1000, width], yr1)
+        if e.category == "drift" :
+            bounding_box = _makeBoundingTrap([zg,xg], [length*1000, width], yr1,
+                                             facecolor="green")
+        elif e.category == "rbend" :
+            bounding_box = _makeBoundingTrap([zg,xg], [length*1000, width], yr1,
+                                             facecolor="blue")
+        elif e.category == "sbend" :
+            angle = e['angle']
+            chord = 2 * (length / angle) * _np.sin(angle / 2)
+            bounding_box = _makeBoundingTrap([zg,xg], [chord*1000, width], yr1, e1=angle/2, e2=angle/2,
+                                             facecolor="blue")
+        elif e.category == "quadrupole" :
+            bounding_box = _makeBoundingTrap([zg,xg], [length*1000, width], yr1,
+                                             facecolor="red")
+
         ax.add_patch(bounding_box)
 
         _plt.xlabel("z/mm")
@@ -182,9 +197,28 @@ def _makeBoundingRect(centre, size, angle) :
                                angle=angle / _np.pi * 180, fill=False,
                                color=(1.0,0,0))
 
-def _makeBoundingTrap(centre, size, angle, e1, e2) :
+def _makeBoundingTrap(centre, size, angle, e1 = 0 , e2 = 0,
+                      facecolor = 'blue',
+                      facealpha = 0.25,
+                      edgecolor = 'black',
+                      linewidth = 1) :
     cen = _np.array(centre)
     size  = _np.array(size)
     rr = _np.array([[_np.cos(angle), -_np.sin(angle)],
                     [_np.sin(angle),  _np.cos(angle)]])
     ll = cen - rr @ size/2
+
+    points = _np.array([[-size[0]/2 + size[1]/2 * _np.tan(e1), -size[1]/2],
+                        [-size[0]/2 - size[1]/2 * _np.tan(e1),  size[1]/2],
+                        [ size[0]/2 + size[1]/2 * _np.tan(e2),  size[1]/2],
+                        [ size[0]/2 - size[1]/2 * _np.tan(e2), -size[1]/2]])
+
+    points = (rr @ points.T).T + cen
+    trapezoid = _patches.Polygon(points, closed=True,
+                                 fill=True,
+                                 facecolor=facecolor,
+                                 alpha=facealpha,
+                                 edgecolor=edgecolor,
+                                 linewidth=linewidth)
+
+    return trapezoid
