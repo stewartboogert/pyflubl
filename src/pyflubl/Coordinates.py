@@ -104,7 +104,7 @@ def _CalculateElementTransformation(e):
         return {"rot_sta":rot_sta, "rot_mid":rot_mid, "rot_end":rot_end,
                 "arc_sta":arc_sta, "arc_mid":arc_mid, "arc_end":arc_end,
                 "cho_sta":cho_sta, "cho_mid":cho_mid, "cho_end":cho_end,
-                "fac_sta": fac_sta                  , "fac_end": fac_end}
+                "fac_sta":fac_sta                   , "fac_end": fac_end}
 
     elif e.category == "sbend":
         # length is qrc length
@@ -165,7 +165,7 @@ def _CalculateElementTransformation(e):
         return {"rot_sta":rot_sta, "rot_mid":rot_mid, "rot_end":rot_end,
                 "arc_sta":arc_sta, "arc_mid":arc_mid, "arc_end":arc_end,
                 "cho_sta":cho_sta, "cho_mid":cho_mid, "cho_end":cho_end,
-                "fac_sta": fac_sta                  , "fac_end": fac_end}
+                "fac_sta":fac_sta                   , "fac_end": fac_end}
 
 
 class Coordinates(object) :
