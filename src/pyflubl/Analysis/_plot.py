@@ -1,5 +1,7 @@
 from ._usrbin import *
 from ._usrdump import *
+from ..Coordinates import Coordinates as _Coordinates
+
 import numpy as _np
 from matplotlib.colors import LogNorm as _LogNorm
 
@@ -159,6 +161,29 @@ def plot_machine_xz(machine) :
         _plt.ylabel("x/mm")
 
         _plt.tight_layout()
+
+def plot_coordinates_xz(coordinates) :
+    if type(coordinates) == str :
+        coordinates = _Coordinates()
+        coordinates.LoadJSON(coordinates)
+
+    for i in range(0,len(coordinates),1) :
+        ast = coordinates.arc_sta[i]
+        am = coordinates.arc_mid[i]
+        ae = coordinates.arc_end[i]
+
+        cs = coordinates.cho_sta[i]
+        cm = coordinates.cho_mid[i]
+        ce = coordinates.cho_end[i]
+
+        _plt.plot(ast[2],ast[0],"o",markerfacecolor='none',markeredgecolor='blue')
+        _plt.plot(cs[2],cs[0],"o",markerfacecolor='none', markeredgecolor='blue')
+
+        _plt.plot(ae[2],ae[0],"o", markerfacecolor='red', markeredgecolor='red')
+        _plt.plot(ce[2],ce[0],"o", markerfacecolor='red', markeredgecolor='red')
+
+        _plt.plot(am[2],am[0],"+", markeredgecolor='green')
+        _plt.plot(cm[2],cm[0],"x", markeredgecolor='green')
 
 def plot_bookkeeping(bookkeeping) :
     elements = bookkeeping['elements']
