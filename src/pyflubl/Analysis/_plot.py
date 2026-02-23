@@ -139,7 +139,7 @@ def plot_machine_xz(machine) :
         _plt.plot(ze,xe,"+", color=(1,0,0))
         _plt.plot(zeg,xeg,"x", color=(1,1,0))
 
-        # bounding_box = _makeBoundingRect([zg,xg], [length*1000, width], yr1)
+        bounding_box = _makeBoundingRect([zg,xg], [length*1000, width], yr1)
         if e.category == "drift" :
             bounding_box = _makeBoundingTrap([zg,xg], [length*1000, width], yr1,
                                              facecolor="green")
@@ -162,28 +162,96 @@ def plot_machine_xz(machine) :
 
         _plt.tight_layout()
 
-def plot_coordinates_xz(coordinates) :
+def plot_coordinates(coordinates) :
+    _plt.subplot(2,2,1)
+    plot_coordinates_projection(coordinates, projection = "xz")
+
+    _plt.subplot(2,2,2)
+    plot_coordinates_projection(coordinates, projection = "yz")
+
+    _plt.subplot(2,2,3)
+    plot_coordinates_projection(coordinates, projection = "xy")
+
+    _plt.tight_layout()
+
+def plot_coordinates_projection(coordinates, projection = "zx") :
+
+    if projection == "xz":
+        axis1 = 0
+        axis2 = 2
+    elif projection == "zx":
+        axis1 = 2
+        axis2 = 0
+    elif projection == "xy" :
+        axis1 = 0
+        axis2 = 1
+    elif projection == "yx" :
+        axis1 = 1
+        axis2 = 0
+    elif projection == "yz" :
+        axis1 = 1
+        axis2 = 2
+    elif projection == "zy" :
+        axis1 = 2
+        axis2 = 1
+    else :
+        raise ValueError("Invalid projection",projection)
+
     if type(coordinates) == str :
         coordinates = _Coordinates()
         coordinates.LoadJSON(coordinates)
 
+    width = 250 # x size
+    height = 250 # y size
+
     for i in range(0,len(coordinates),1) :
-        ast = coordinates.arc_sta[i]
-        am = coordinates.arc_mid[i]
-        ae = coordinates.arc_end[i]
+        length = coordinates.element_length[i]*1000
+        size = [width, height, length]
 
-        cs = coordinates.cho_sta[i]
-        cm = coordinates.cho_mid[i]
-        ce = coordinates.cho_end[i]
+        vp = _np.array(coordinates.rot_mid[i]) @ _np.array([0,0,1])
+        yr = _np.arctan2(vp[axis2], vp[axis1])
 
-        _plt.plot(ast[2],ast[0],"o",markerfacecolor='none',markeredgecolor='blue')
-        _plt.plot(cs[2],cs[0],"o",markerfacecolor='none', markeredgecolor='blue')
+        ast = coordinates.arc_sta[i]*1000
+        am = coordinates.arc_mid[i]*1000
+        ae = coordinates.arc_end[i]*1000
 
-        _plt.plot(ae[2],ae[0],"o", markerfacecolor='red', markeredgecolor='red')
-        _plt.plot(ce[2],ce[0],"o", markerfacecolor='red', markeredgecolor='red')
+        cs = coordinates.cho_sta[i]*1000
+        cm = coordinates.cho_mid[i]*1000
+        ce = coordinates.cho_end[i]*1000
 
-        _plt.plot(am[2],am[0],"+", markeredgecolor='green')
-        _plt.plot(cm[2],cm[0],"x", markeredgecolor='green')
+        fi = coordinates.fac_sta[i]
+        fe = coordinates.fac_end[i]
+
+        _plt.plot(ast[axis1],ast[axis2],"o",markerfacecolor='none',markeredgecolor='blue')
+        _plt.plot(cs[axis1],cs[axis2],"o",markerfacecolor='none', markeredgecolor='blue')
+
+        _plt.plot(ae[axis1],ae[axis2],"o", markerfacecolor='red', markeredgecolor='red')
+        _plt.plot(ce[axis1],ce[axis2],"o", markerfacecolor='red', markeredgecolor='red')
+
+        _plt.plot(am[axis1],am[axis2],"+", markeredgecolor='green')
+        _plt.plot(cm[axis1],cm[axis2],"x", markeredgecolor='green')
+
+        bounding_box = _makeBoundingRect([cm[axis1], cm[axis2]],
+                                         [size[axis2], size[axis1]], yr,
+                                         # [length, width], yr,
+                                         fill=False,
+                                         edgecolor="green",
+                                         linewidth=1,
+                                         linestyle="--")
+        _plt.gca().add_patch(bounding_box)
+
+        fac_sta_arrow = _makeVectorArrow([cs[axis1], cs[axis2]], [fi[axis1],fi[axis2]],500., 0,
+                                         color="blue")
+        _plt.gca().add_patch(fac_sta_arrow)
+
+        fac_end_arrow = _makeVectorArrow([ce[axis1], ce[axis2]], [fe[axis1],fe[axis2]], 500.0, 0,
+                                         color="red")
+        _plt.gca().add_patch(fac_end_arrow)
+
+    # TODO fix this based on axis1, axis2
+    labels = ["x/mm", "y/mm", "z/mm"]
+    _plt.xlabel(labels[axis1])
+    _plt.ylabel(labels[axis2])
 
 def plot_bookkeeping(bookkeeping) :
     elements = bookkeeping['elements']
@@ -211,7 +279,11 @@ def plot_bookkeeping(bookkeeping) :
             _plt.plot([start[2], end[2]], [start[0], end[0]], "o--")
             switch_marker = True
 
-def _makeBoundingRect(centre, size, angle) :
+def _makeBoundingRect(centre, size, angle,
+                      fill=False,
+                      edgecolor="black",
+                      linestyle="-",
+                      linewidth = 1) :
     cen = _np.array(centre)
     size  = _np.array(size)
     rr = _np.array([[_np.cos(angle), -_np.sin(angle)],
@@ -219,14 +291,28 @@ def _makeBoundingRect(centre, size, angle) :
     ll = cen - rr @ size/2
 
     return  _patches.Rectangle(ll, size[0], size[1],
-                               angle=angle / _np.pi * 180, fill=False,
-                               color=(1.0,0,0))
+                               angle=angle / _np.pi * 180,
+                               fill=False,
+                               edgecolor=edgecolor,
+                               linestyle=linestyle)
+
+def _makeVectorArrow(base, dir, length, angle,
+                     color="blue") :
+    rr = _np.array([[_np.cos(angle), -_np.sin(angle)],
+                    [_np.sin(angle),  _np.cos(angle)]])
+
+    return _patches.FancyArrowPatch(base, base + rr @ _np.array(dir) * length,
+                                    arrowstyle="-|>", mutation_scale=20,
+                                    color=color, lw=1)
 
 def _makeBoundingTrap(centre, size, angle, e1 = 0 , e2 = 0,
+                      fill=True,
                       facecolor = 'blue',
                       facealpha = 0.25,
                       edgecolor = 'black',
+                      linestyle = "-",
                       linewidth = 1) :
+
     cen = _np.array(centre)
     size  = _np.array(size)
     rr = _np.array([[_np.cos(angle), -_np.sin(angle)],
@@ -239,11 +325,13 @@ def _makeBoundingTrap(centre, size, angle, e1 = 0 , e2 = 0,
                         [ size[0]/2 - size[1]/2 * _np.tan(e2), -size[1]/2]])
 
     points = (rr @ points.T).T + cen
+
     trapezoid = _patches.Polygon(points, closed=True,
                                  fill=True,
                                  facecolor=facecolor,
                                  alpha=facealpha,
                                  edgecolor=edgecolor,
+                                 linestyle=linestyle,
                                  linewidth=linewidth)
 
     return trapezoid
