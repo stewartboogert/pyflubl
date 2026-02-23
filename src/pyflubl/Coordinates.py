@@ -67,7 +67,7 @@ def _CalculateElementTransformation(e):
 
         rot_sta = _np.array([[1, 0, 0],
                              [0, 1, 0],
-                             [0, 0, 0]])
+                             [0, 0, 1]])
         rot_mid = _np.array([[ _np.cos(a/2), 0, -_np.sin(a/2)],
                              [            0, 1,             0],
                              [ _np.sin(a/2), 0, _np.cos(a/2)]])
@@ -98,8 +98,8 @@ def _CalculateElementTransformation(e):
         fac_sta = _np.array([0,0,-1])
         fac_end = _np.array([0,0,1])
 
-        fac_sta = tilt @ rot_end @ fac_sta
-        fac_end = tilt @ rot_end @ fac_end
+        fac_sta = rot_mid @ fac_sta
+        fac_end = rot_mid @ fac_end
 
         return {"rot_sta":rot_sta, "rot_mid":rot_mid, "rot_end":rot_end,
                 "arc_sta":arc_sta, "arc_mid":arc_mid, "arc_end":arc_end,
@@ -128,7 +128,7 @@ def _CalculateElementTransformation(e):
 
         rot_sta = _np.array([[1, 0, 0],
                              [0, 1, 0],
-                             [0, 0, 0]])
+                             [0, 0, 1]])
         rot_mid = _np.array([[ _np.cos(a/2), 0, -_np.sin(a/2)],
                                  [          0, 1,          0],
                                  [_np.sin(a/2), 0, _np.cos(a/2)]])
@@ -159,8 +159,8 @@ def _CalculateElementTransformation(e):
         fac_sta = _np.array([0,0,-1])
         fac_end = _np.array([0,0,1])
 
-        fac_sta = tilt @ rot_end @ fac_sta
-        fac_end = tilt @ rot_end @ fac_end
+        fac_sta = rot_sta @ fac_sta
+        fac_end = rot_end @ fac_end
 
         return {"rot_sta":rot_sta, "rot_mid":rot_mid, "rot_end":rot_end,
                 "arc_sta":arc_sta, "arc_mid":arc_mid, "arc_end":arc_end,
