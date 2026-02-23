@@ -146,8 +146,8 @@ def _CalculateElementTransformation(e):
         arc_end = _np.array([rho*(_np.cos(a) - 1),0,rho*_np.sin(a)])
 
         cho_sta = _np.array([0,0,0])
-        cho_mid = 2*(l/a)*_np.sin(a/2) * _np.array([-_np.sin(a/2),0,_np.cos(a/2)])
-        cho_end = endgeomdelta/2.0
+        cho_end = 2*(l/a)*_np.sin(a/2) * _np.array([-_np.sin(a/2),0,_np.cos(a/2)])
+        cho_mid = cho_end/2.0
 
         arc_sta = tilt @ arc_sta
         arc_mid = tilt @ arc_mid
