@@ -112,6 +112,7 @@ def _CalculateElementTransformation(e):
         a = e['angle']
         l = e.length
         t = 0
+
         if 'tilt' in e:
             t = e['tilt']
 
@@ -130,11 +131,11 @@ def _CalculateElementTransformation(e):
                              [0, 1, 0],
                              [0, 0, 1]])
         rot_mid = _np.array([[ _np.cos(a/2), 0, -_np.sin(a/2)],
-                                 [          0, 1,          0],
-                                 [_np.sin(a/2), 0, _np.cos(a/2)]])
+                             [          0, 1,          0],
+                             [_np.sin(a/2), 0, _np.cos(a/2)]])
         rot_end = _np.array([[ _np.cos(a), 0, -_np.sin(a)],
-                                 [          0, 1,          0],
-                                 [_np.sin(a), 0, _np.cos(a)]])
+                             [          0, 1,          0],
+                             [_np.sin(a), 0, _np.cos(a)]])
 
         rot_sta = tilt @ rot_sta @ _np.linalg.inv(tilt)
         rot_mid = tilt @ rot_mid @ _np.linalg.inv(tilt)
@@ -165,7 +166,7 @@ def _CalculateElementTransformation(e):
         return {"rot_sta":rot_sta, "rot_mid":rot_mid, "rot_end":rot_end,
                 "arc_sta":arc_sta, "arc_mid":arc_mid, "arc_end":arc_end,
                 "cho_sta":cho_sta, "cho_mid":cho_mid, "cho_end":cho_end,
-                "fac_sta":fac_sta                   , "fac_end": fac_end}
+                "fac_sta":fac_sta                   , "fac_end":fac_end}
 
 
 class Coordinates(object) :
