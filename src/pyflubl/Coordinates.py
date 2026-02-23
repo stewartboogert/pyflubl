@@ -357,3 +357,33 @@ class Coordinates(object) :
 
             self.fac_sta = [_np.array(e) for e in data['fac_sta']]
             self.fac_end = [_np.array(e) for e in data['fac_end']]
+
+    def PandasDataFrame(self):
+        import pandas as pd
+        df = pd.DataFrame()
+        df['element_name'] = self.element_name
+        df['element_category'] = self.element_category
+        df['element_length'] = self.element_length
+        df['element_theta'] = self.element_theta
+        df['element_psi'] = self.element_psi
+
+        df['len_sta'] = self.len_sta
+        df['len_mid'] = self.len_mid
+        df['len_end'] = self.len_end
+
+        df['rot_sta'] = self.rot_sta
+        df['rot_mid'] = self.rot_mid
+        df['rot_end'] = self.rot_end
+
+        df['arc_sta'] = self.arc_sta
+        df['arc_mid'] = self.arc_mid
+        df['arc_end'] = self.arc_end
+
+        df['cho_sta'] = self.cho_sta
+        df['cho_mid'] = self.cho_mid
+        df['cho_end'] = self.cho_end
+
+        df['fac_sta'] = self.fac_sta
+        df['fac_end'] = self.fac_end
+
+        return df
