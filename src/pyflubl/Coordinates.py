@@ -228,7 +228,7 @@ class Coordinates(object) :
     def __len__(self):
         return len(self.element_name)
 
-    def Build(self):
+    def Build(self, circular = False):
 
         for element_name in self.elements :
             e = self.elements[element_name]
@@ -290,8 +290,32 @@ class Coordinates(object) :
                 self.cho_sta.append(rot_end @ t['cho_sta'] + arc_end)
                 self.cho_mid.append(rot_end @ t['cho_mid'] + arc_end)
                 self.cho_end.append(rot_end @ t['cho_end'] + arc_end)
+
                 self.fac_sta.append(rot_end @ t['fac_sta'])
                 self.fac_end.append(rot_end @ t['fac_end'])
+
+        self._CheckPoleFaces()
+
+    def _CheckPoleFaces(self, circular = False):
+        for i, element_name in enumerate(self.elements) :
+
+            # current and next element indices
+            i1 = i
+            if i < len(self)-1 :
+                i2 = i+1
+            else :
+                if circular :
+                    i2 = 0
+                else :
+                    continue
+
+            # drift/rbend
+            if self.element_category[i1] == "drift" and self.element_category[i2] == "rbend" :
+                self.fac_end[i1] = - self.fac_sta[i2]
+            # rbend/drift
+            if self.element_category[i1] == "rbend" and self.element_category[i2] == "drift" :
+                self.fac_sta[i2] = - self.fac_end[i1]
+
 
     def SaveJSON(self, file_name, indent = 0):
         dict_to_save = {}
@@ -327,7 +351,6 @@ class Coordinates(object) :
                 _json.dump(dict_to_save, f, indent=indent)
             else :
                 _json.dump(dict_to_save, f)
-
 
     def LoadJSON(self, file_name):
         with open(file_name, "r") as f:
