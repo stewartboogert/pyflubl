@@ -176,31 +176,33 @@ class Coordinates(object) :
         self.sequence = []
         self.elements = {}
 
-        self.element_name = []
-        self.element_category = []
-        self.element_length = []
-        self.element_theta = []
-        self.element_psi   = []
+        self.element_name = [] # name of element
+        self.element_category = [] # type of element
+        self.element_length = [] # length of element
+        self.element_theta = [] # rotation around y
+        self.element_psi   = [] # rotation around z
 
-        self.len_sta = []
-        self.len_mid = []
-        self.len_end = []
+        self.len_sta = [] # length along reference trajectory at start of element
+        self.len_mid = [] # length along reference trajectory at middle of element
+        self.len_end = [] # length along reference trajectory at end of element
 
-        self.rot_sta = []
-        self.rot_mid = []
-        self.rot_end = []
+        self.rot_sta = [] # rotation of reference trajectory at start
+        self.rot_mid = [] # rotation of reference trajectory at middle
+        self.rot_end = [] # rotation of reference trajectory at end
 
-        self.arc_sta = []
-        self.arc_mid = []
-        self.arc_end = []
+        self.arc_sta = [] # arc position at start
+        self.arc_mid = [] # arc position at middle
+        self.arc_end = [] # arc position at end
 
-        self.cho_sta = []
-        self.cho_mid = []
-        self.cho_end = []
+        self.cho_sta = [] # chord position at start
+        self.cho_mid = [] # chord position at middle
+        self.cho_end = [] # chord position at end
 
-        self.rot_sta = []
-        self.rot_mid = []
-        self.rot_end = []
+        self.fac_sta = [] # normal vector to face at start of element
+        self.fac_end = [] # normal vector to face at end of element
+
+        self.cub_low = [] # lower corder of bounding cuboid
+        self.cub_high = [] # upper corner of bounding cuboid
 
         self.fac_sta = []
         self.fac_end = []
