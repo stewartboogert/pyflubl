@@ -204,8 +204,16 @@ class Coordinates(object) :
         self.cub_low = [] # lower corder of bounding cuboid
         self.cub_high = [] # upper corner of bounding cuboid
 
-        self.fac_sta = []
-        self.fac_end = []
+        # arb 6 face wed/raw/arb (first 4 loop clockwise around +z axis,
+        # second 4 loop clockwise around -z axis)
+        self.arb_r1 = [] # -z-x-y
+        self.arb_r2 = [] # -z-x+y
+        self.arb_r3 = [] # -z+x+y
+        self.arb_r4 = [] # -z+x-y
+        self.arb_r1 = [] # +z-x-y
+        self.arb_r2 = [] # +z-x+y
+        self.arb_r3 = [] # +z+x+y
+        self.arb_r4 = [] # +z+x-y
 
     def Append(self, item, addToSequence=True):
         if not isinstance(item, (Element, Line)):
@@ -347,6 +355,18 @@ class Coordinates(object) :
         dict_to_save['fac_sta'] = _np.array(self.fac_sta).tolist()
         dict_to_save['fac_end'] = _np.array(self.fac_end).tolist()
 
+        dict_to_save['cub_low'] = _np.array(self.cub_low).tolist()
+        dict_to_save['cub_high'] = _np.array(self.cub_high).tolist()
+
+        dict_to_save['arb_r1'] = _np.array(self.arb_r1).tolist()
+        dict_to_save['arb_r2'] = _np.array(self.arb_r2).tolist()
+        dict_to_save['arb_r3'] = _np.array(self.arb_r3).tolist()
+        dict_to_save['arb_r4'] = _np.array(self.arb_r4).tolist()
+        dict_to_save['arb_r5'] = _np.array(self.arb_r5).tolist()
+        dict_to_save['arb_r6'] = _np.array(self.arb_r6).tolist()
+        dict_to_save['arb_r7'] = _np.array(self.arb_r7).tolist()
+        dict_to_save['arb_r8'] = _np.array(self.arb_r8).tolist()
+
         # Pretty-printed
         with open(file_name, "w") as f:
             if indent > 0 :
@@ -384,6 +404,19 @@ class Coordinates(object) :
             self.fac_sta = [_np.array(e) for e in data['fac_sta']]
             self.fac_end = [_np.array(e) for e in data['fac_end']]
 
+            self.cub_low = [_np.array(e) for e in data['cub_low']]
+            self.cub_high = [_np.array(e) for e in data['cub_high']]
+
+            self.arb_r1 = [_np.array(e) for e in data['arb_r1']]
+            self.arb_r2 = [_np.array(e) for e in data['arb_r2']]
+            self.arb_r3 = [_np.array(e) for e in data['arb_r3']]
+            self.arb_r4 = [_np.array(e) for e in data['arb_r4']]
+            self.arb_r5 = [_np.array(e) for e in data['arb_r5']]
+            self.arb_r6 = [_np.array(e) for e in data['arb_r6']]
+            self.arb_r7 = [_np.array(e) for e in data['arb_r7']]
+            self.arb_r8 = [_np.array(e) for e in data['arb_r8']]
+
+
     def PandasDataFrame(self):
         import pandas as pd
         df = pd.DataFrame()
@@ -411,5 +444,16 @@ class Coordinates(object) :
 
         df['fac_sta'] = self.fac_sta
         df['fac_end'] = self.fac_end
+
+        df['cub_low'] = self.cub_low
+        df['cub_high'] = self.cub_high
+        df['arb_r1'] = self.arb_r1
+        df['arb_r2'] = self.arb_r2
+        df['arb_r3'] = self.arb_r3
+        df['arb_r4'] = self.arb_r4
+        df['arb_r5'] = self.arb_r5
+        df['arb_r6'] = self.arb_r6
+        df['arb_r7'] = self.arb_r7
+        df['arb_r8'] = self.arb_r8
 
         return df
