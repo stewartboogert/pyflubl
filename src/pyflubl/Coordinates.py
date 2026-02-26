@@ -210,10 +210,10 @@ class Coordinates(object) :
         self.arb_r2 = [] # -z-x+y
         self.arb_r3 = [] # -z+x+y
         self.arb_r4 = [] # -z+x-y
-        self.arb_r1 = [] # +z-x-y
-        self.arb_r2 = [] # +z-x+y
-        self.arb_r3 = [] # +z+x+y
-        self.arb_r4 = [] # +z+x-y
+        self.arb_r5 = [] # +z-x-y
+        self.arb_r6 = [] # +z-x+y
+        self.arb_r7 = [] # +z+x+y
+        self.arb_r8 = [] # +z+x-y
 
     def Append(self, item, addToSequence=True):
         if not isinstance(item, (Element, Line)):
