@@ -248,7 +248,6 @@ def plot_coordinates_projection(coordinates, projection = "zx") :
                                          color="red")
         _plt.gca().add_patch(fac_end_arrow)
 
-    # TODO fix this based on axis1, axis2
     labels = ["x/mm", "y/mm", "z/mm"]
     _plt.xlabel(labels[axis1])
     _plt.ylabel(labels[axis2])
