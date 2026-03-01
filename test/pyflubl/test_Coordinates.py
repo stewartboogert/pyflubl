@@ -142,7 +142,7 @@ def test_T002_rbend_tilt_many_coordinates() :
 
 def test_T003_sbend_coordinates() :
     m = _pfbl.Builder.Machine()
-    e = m.AddRBend("sb1", length=1, angle=30/180.*_np.pi)
+    e = m.AddSBend("sb1", length=1, angle=30/180.*_np.pi)
 
     c = _pfbl.Coordinates.Coordinates()
     c.Append(e)
