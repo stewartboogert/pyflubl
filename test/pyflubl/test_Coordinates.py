@@ -42,6 +42,18 @@ def test_T002_rbend_coordinates() :
 
     return c
 
+def test_T002_rbend_poleface_coordinates() :
+    m = _pfbl.Builder.Machine()
+    e = m.AddRBend("rb1", length=1, angle=45/180.*_np.pi, e1=45/180.*_np.pi, e2=45/180.*_np.pi)
+
+    c = _pfbl.Coordinates.Coordinates()
+    c.Append(e)
+
+    c.Build()
+    c.SaveJSON("T002_rbend_poleface_coordinates.json")
+
+    return c
+
 def test_T002_rbend_many_coordinates() :
     m = _pfbl.Builder.Machine()
     e1 = m.AddRBend("rb1", length=1, angle=30/180.*_np.pi)
