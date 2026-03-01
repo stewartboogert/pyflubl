@@ -237,3 +237,20 @@ def test_T003_sbend_tilt_coordinates() :
     c.SaveJSON("T003_sbend_tilt_coordinates.json")
 
     return c
+
+def test_T004_quad_coordinates() :
+    m = _pfbl.Builder.Machine()
+    e1 = m.AddDrift("d1",length=1.0)
+    e2 = m.AddQuadrupole("q1",length=1.0, k1=0.1)
+    e3 = m.AddDrift("d2",length=1.0)
+
+    c = _pfbl.Coordinates.Coordinates()
+    c.Append(e1)
+    c.Append(e2)
+    c.Append(e3)
+
+    c.Build()
+    c.SaveJSON("T004_quad_coordinates.json")
+
+    return c
+    
