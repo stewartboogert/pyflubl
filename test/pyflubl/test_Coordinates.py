@@ -154,9 +154,9 @@ def test_T003_sbend_coordinates() :
 
 def test_T003_sbend_many_coordinates() :
     m = _pfbl.Builder.Machine()
-    e1 = m.AddSBend("rb1", length=1, angle=30/180.*_np.pi)
-    e2 = m.AddSBend("rb2", length=1, angle=30/180.*_np.pi)
-    e3 = m.AddSBend("rb3", length=1, angle=30/180.*_np.pi)
+    e1 = m.AddSBend("sb1", length=1, angle=30/180.*_np.pi)
+    e2 = m.AddSBend("sb2", length=1, angle=30/180.*_np.pi)
+    e3 = m.AddSBend("sb3", length=1, angle=30/180.*_np.pi)
 
     e4 = m.AddDrift("d1", length=1)
     e5 = m.AddDrift("d2", length=1)
@@ -180,8 +180,8 @@ def test_T003_sbend_many_coordinates() :
 
 def test_T003_sbend_dogleg_coordinates() :
     m = _pfbl.Builder.Machine()
-    e1 = m.AddSBend("rb1", length=1, angle=30/180.*_np.pi)
-    e2 = m.AddSBend("rb2", length=1, angle=-30/180.*_np.pi)
+    e1 = m.AddSBend("sb1", length=1, angle=30/180.*_np.pi)
+    e2 = m.AddSBend("sb2", length=1, angle=-30/180.*_np.pi)
 
     e4 = m.AddDrift("d1", length=1)
     e5 = m.AddDrift("d2", length=1)
@@ -202,9 +202,9 @@ def test_T003_sbend_dogleg_coordinates() :
 
 def test_T003_sbend_tilt_many_coordinates() :
     m = _pfbl.Builder.Machine()
-    e1 = m.AddSBend("rb1", length=1, angle=29.999/180.*_np.pi, tilt=_np.pi/2)
-    e2 = m.AddSBend("rb2", length=1, angle=29.999/180.*_np.pi, tilt=_np.pi/2)
-    e3 = m.AddSBend("rb3", length=1, angle=29.999/180.*_np.pi, tilt=_np.pi/2)
+    e1 = m.AddSBend("sb1", length=1, angle=29.999/180.*_np.pi, tilt=_np.pi/2)
+    e2 = m.AddSBend("sb2", length=1, angle=29.999/180.*_np.pi, tilt=_np.pi/2)
+    e3 = m.AddSBend("sb3", length=1, angle=29.999/180.*_np.pi, tilt=_np.pi/2)
 
     e4 = m.AddDrift("d1", length=1)
     e5 = m.AddDrift("d2", length=1)
