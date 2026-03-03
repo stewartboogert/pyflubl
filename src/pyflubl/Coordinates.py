@@ -456,9 +456,9 @@ class Coordinates(object) :
                 self.len_mid.append(len_end + e.length/2.0)
                 self.len_end.append(len_end + e.length)
 
-                self.rot_sta.append(t['rot_sta'] @ rot_end)
-                self.rot_mid.append(t['rot_mid'] @ rot_end)
-                self.rot_end.append(t['rot_end'] @ rot_end)
+                self.rot_sta.append(rot_end @ t['rot_sta'] )
+                self.rot_mid.append(rot_end @ t['rot_mid'] )
+                self.rot_end.append(rot_end @ t['rot_end'] )
 
                 self.arc_sta.append(rot_end @ t['arc_sta'] + arc_end)
                 self.arc_mid.append(rot_end @ t['arc_mid'] + arc_end)
@@ -481,7 +481,7 @@ class Coordinates(object) :
         self.ibuild += 1
 
         # check pole faces before bounding cube/trapezoid
-        # if self._CheckPoleFaces() and self.ibuild < 2 :
+        #if self._CheckPoleFaces() and self.ibuild < 2 :
         if self._CheckPoleFaces() :
             self.Clear()
             self.Build(circular)
