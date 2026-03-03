@@ -140,6 +140,48 @@ def test_T002_rbend_tilt_many_coordinates() :
 
     return c
 
+
+def test_T002_rbend_bend_tilt_many_coordinates() :
+    m = _pfbl.Builder.Machine()
+
+    rb1 = m.AddRBend("rb1", length=1, angle=30/180.*_np.pi)
+    rb2 = m.AddRBend("rb2", length=1, angle=30/180.*_np.pi)
+    rb3 = m.AddRBend("rb3", length=1, angle=30/180.*_np.pi)
+
+    rbt1 = m.AddRBend("rbt1", length=1, angle=30/180.*_np.pi, tilt=_np.pi/2)
+    rbt2 = m.AddRBend("rbt2", length=1, angle=30/180.*_np.pi, tilt=_np.pi/2)
+    rbt3 = m.AddRBend("rbt3", length=1, angle=30/180.*_np.pi, tilt=_np.pi/2)
+
+    d1 = m.AddDrift("d1", length=1)
+    d2 = m.AddDrift("d2", length=1)
+    d3 = m.AddDrift("d3", length=1)
+    d4 = m.AddDrift("d4", length=1)
+    d5 = m.AddDrift("d5", length=1)
+    d6 = m.AddDrift("d6", length=1)
+    d7 = m.AddDrift("d7", length=1)
+
+    c = _pfbl.Coordinates.Coordinates()
+    c.Append(d1)
+    c.Append(rb1)
+    c.Append(d2)
+    c.Append(rb2)
+    c.Append(d3)
+    c.Append(rb3)
+    c.Append(d4)
+
+    c.Append(rbt1)
+    c.Append(d5)
+    c.Append(rbt2)
+    c.Append(d6)
+    c.Append(rbt3)
+    c.Append(d7)
+
+    c.Build()
+    c.SaveJSON("T002_rbend_bend_tilt_many_coordinates.json")
+
+    return c
+
+
 def test_T003_sbend_coordinates() :
     m = _pfbl.Builder.Machine()
     e = m.AddSBend("sb1", length=1, angle=30/180.*_np.pi)
