@@ -11,6 +11,12 @@ from matplotlib import pyplot as _plt
 from matplotlib import patches as _patches
 import matplotlib.transforms as _transforms
 
+def _sort_clockwise(points):
+    """points: (N, 2) array"""
+    cx, cy = points.mean(axis=0)
+    angles = _np.arctan2(points[:,1] - cy, points[:,0] - cx)
+    return points[_np.argsort(-angles)]
+
 def plot(data):
     if type(data) == Usrbin :
         pass
@@ -79,7 +85,7 @@ def plot_machine(machine) :
         xr, yr, zr  = _matrix2tbxyz(_np.array(m.midrotationint[eidx]))
 
         length  = e.length
-        width = 250
+        width = 300
 
         ###########################################
         ax = _plt.subplot(3,1,1)
@@ -201,12 +207,8 @@ def plot_coordinates_projection(coordinates, projection = "zx") :
         coordinates = _Coordinates()
         coordinates.LoadJSON(coordinates)
 
-    width = 250 # x size
-    height = 250 # y size
-
     for i in range(0,len(coordinates),1) :
-        length = coordinates.element_length[i]*1000
-        size = [width, height, length]
+        length = coordinates.element_chord_length[i]*1000
 
         vp = _np.array(coordinates.rot_mid[i]) @ _np.array([0,0,1])
         yr = _np.arctan2(vp[axis2], vp[axis1])
@@ -222,6 +224,8 @@ def plot_coordinates_projection(coordinates, projection = "zx") :
         fi = coordinates.fac_sta[i]
         fe = coordinates.fac_end[i]
 
+        bp = coordinates.tra[i]*1000
+
         _plt.plot(ast[axis1],ast[axis2],"o",markerfacecolor='none',markeredgecolor='blue')
         _plt.plot(cs[axis1],cs[axis2],"o",markerfacecolor='none', markeredgecolor='blue')
 
@@ -231,14 +235,26 @@ def plot_coordinates_projection(coordinates, projection = "zx") :
         _plt.plot(am[axis1],am[axis2],"+", markeredgecolor='green')
         _plt.plot(cm[axis1],cm[axis2],"x", markeredgecolor='green')
 
-        bounding_box = _makeBoundingRect([cm[axis1], cm[axis2]],
-                                         [size[axis2], size[axis1]], yr,
-                                         # [length, width], yr,
-                                         fill=False,
-                                         edgecolor="green",
-                                         linewidth=1,
-                                         linestyle="--")
-        _plt.gca().add_patch(bounding_box)
+        if coordinates.element_category[i] == "drift" :
+            bp_facecolor = 'black'
+            bp_facealpha = 0.5
+        elif coordinates.element_category[i] == "rbend" :
+            bp_facecolor = 'blue'
+            bp_facealpha = 0.5
+        elif coordinates.element_category[i] == "sbend" :
+            bp_facecolor = 'blue'
+            bp_facealpha = 0.5
+        elif coordinates.element_category[i] == "quadrupole" :
+            bp_facecolor = 'red'
+            bp_facealpha = 0.5
+        else :
+            bp_facecolor = 'green'
+            bp_facealpha = 0.5
+
+        bounding_poly = _makeBoundingPolygon(bp[:,[axis1,axis2]],
+                                             facecolor = bp_facecolor,
+                                             facealpha = bp_facealpha)
+        _plt.gca().add_patch(bounding_poly)
 
         fac_sta_arrow = _makeVectorArrow([cs[axis1], cs[axis2]], [fi[axis1],fi[axis2]],500., 0,
                                          color="blue")
@@ -251,6 +267,60 @@ def plot_coordinates_projection(coordinates, projection = "zx") :
     labels = ["x/mm", "y/mm", "z/mm"]
     _plt.xlabel(labels[axis1])
     _plt.ylabel(labels[axis2])
+
+def plot_coordinates_3d(coordinates) :
+    ax = _plt.gcf().add_subplot(111, projection='3d')
+
+    orbit = _np.empty((_np.array(coordinates.arc_sta).shape[0]*3,
+                      _np.array(coordinates.arc_sta).shape[1]))
+    chord = _np.empty((_np.array(coordinates.cho_sta).shape[0]*2,
+                      _np.array(coordinates.cho_sta).shape[1]))
+
+    orbit[0::3] = coordinates.arc_sta
+    orbit[1::3] = coordinates.arc_mid
+    orbit[2::3] = coordinates.arc_end
+    orbit = orbit * 1000
+
+    chord[0::2] = coordinates.cho_sta
+    chord[1::2] = coordinates.cho_end
+    chord = chord * 1000
+
+    for i in range(0, len(coordinates), 1):
+        ax.plot(orbit[:,0], orbit[:,1], orbit[:,2], color='black')
+        ax.plot(chord[:,0], chord[:,1], chord[:,2], color='black', linestyle='--')
+
+
+        ax.scatter(_np.array(coordinates.cho_sta)[:,0] * 1000,
+                   _np.array(coordinates.cho_sta)[:,1] * 1000,
+                   _np.array(coordinates.cho_sta)[:,2] * 1000,
+                   facecolors='red', edgecolors='red', marker='o', s=50)
+
+        ax.scatter(_np.array(coordinates.cho_mid)[:,0] * 1000,
+                   _np.array(coordinates.cho_mid)[:,1] * 1000,
+                   _np.array(coordinates.cho_mid)[:,2] * 1000,
+                   c='green', marker="+", s=50)
+
+        ax.scatter(_np.array(coordinates.arc_mid)[:,0] * 1000,
+                   _np.array(coordinates.arc_mid)[:,1] * 1000,
+                   _np.array(coordinates.arc_mid)[:,2] * 1000,
+                   c='green', marker="x", s=50)
+
+        ax.scatter(_np.array(coordinates.cho_end)[:,0] * 1000,
+                   _np.array(coordinates.cho_end)[:,1] * 1000,
+                   _np.array(coordinates.cho_end)[:,2] * 1000,
+                   facecolors='blue', edgecolors='blue', marker='o', s=60)
+
+        ax.quiver(*(coordinates.cho_sta[i]*1000), *(coordinates.fac_sta[i] * 1000/3), color='red')
+        ax.quiver(*(coordinates.cho_end[i]*1000), *(coordinates.fac_end[i] * 1000/3), color='blue')
+
+    ax.set_xlabel("x/mm")
+    ax.set_ylabel("y/mm")
+    ax.set_zlabel("z/mm")
+
+def plot_coordinates_trapezoid(coords) :
+    _plt.plot(coords[:,0], coords[:,1])
+    _plt.xlabel("x/m")
+    _plt.ylabel("y/m")
 
 def plot_bookkeeping(bookkeeping) :
     elements = bookkeeping['elements']
@@ -295,15 +365,6 @@ def _makeBoundingRect(centre, size, angle,
                                edgecolor=edgecolor,
                                linestyle=linestyle)
 
-def _makeVectorArrow(base, dir, length, angle,
-                     color="blue") :
-    rr = _np.array([[_np.cos(angle), -_np.sin(angle)],
-                    [_np.sin(angle),  _np.cos(angle)]])
-
-    return _patches.FancyArrowPatch(base, base + rr @ _np.array(dir) * length,
-                                    arrowstyle="-|>", mutation_scale=20,
-                                    color=color, lw=1)
-
 def _makeBoundingTrap(centre, size, angle, e1 = 0 , e2 = 0,
                       fill=True,
                       facecolor = 'blue',
@@ -334,3 +395,30 @@ def _makeBoundingTrap(centre, size, angle, e1 = 0 , e2 = 0,
                                  linewidth=linewidth)
 
     return trapezoid
+
+def _makeBoundingPolygon(points,
+                         fill=True,
+                         facecolor='blue',
+                         facealpha=0.25,
+                         edgecolor='black',
+                         linestyle="-",
+                         linewidth=1) :
+    points = _sort_clockwise(points)
+    polygon = _patches.Polygon(points, closed=True,
+                               fill=True,
+                               facecolor=facecolor,
+                               alpha=facealpha,
+                               edgecolor=edgecolor,
+                               linestyle=linestyle,
+                               linewidth=linewidth)
+    return polygon
+
+def _makeVectorArrow(base, dir, length, angle,
+                     color="blue") :
+    rr = _np.array([[_np.cos(angle), -_np.sin(angle)],
+                    [_np.sin(angle),  _np.cos(angle)]])
+
+    return _patches.FancyArrowPatch(base, base + rr @ _np.array(dir) * length,
+                                    arrowstyle="-|>", mutation_scale=20,
+                                    color=color, lw=1)
+

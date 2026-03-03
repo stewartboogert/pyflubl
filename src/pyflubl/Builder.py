@@ -359,7 +359,10 @@ class Line(list) :
 
 class Machine(object) :
 
-    _outer_allowed_keys = ["outerHorizontalSize", "outerVerticalSize","outerMaterial"]
+    _outer_allowed_keys = ["outerHorizontalSize",
+                           "outerVerticalSize","outerMaterial",
+                           "outerE1", "outerE2",
+                           "outerP1", "outerP2"]
     _beampipe_allowed_keys = ["vacuumMaterial", "beampipeMaterial","beampipeRadius", "beampipeThickness",
                               "e1", "e2"]
     _rbend_allowed_keys = ["angle"]
@@ -553,6 +556,10 @@ class Machine(object) :
                        self._tiltshift_allowed_keys
         self._CheckElementKwargs(kwargs, allowed_keys)
         self._SetDefaultElementKwargs(kwargs, allowed_keys)
+
+        kwargs['outerE1'] = -kwargs['e1']
+        kwargs['outerE2'] = -kwargs['e2']
+
         e = Element(name=name, category="rbend", length=length, **kwargs)
         self.Append(e)
         return e
@@ -565,6 +572,11 @@ class Machine(object) :
 
         self._CheckElementKwargs(kwargs, allowed_keys)
         self._SetDefaultElementKwargs(kwargs, allowed_keys)
+
+        # need to set the outer trap angles for Sbend
+        kwargs['outerE1'] = -kwargs['angle']/2 - kwargs['e1']
+        kwargs['outerE2'] = -kwargs['angle']/2 - kwargs['e2']
+
         e = Element(name=name, category="sbend", length = length, **kwargs)
         self.Append(e)
         return e
@@ -2524,6 +2536,14 @@ class Machine(object) :
                     kwargs[ak] = self.options.outerVerticalSize
                 elif ak == "outerMaterial" :
                     kwargs[ak] = self.options.outerMaterial
+                elif ak == "outerE1" :
+                    kwargs[ak] = 0.0
+                elif ak == "outerE2" :
+                    kwargs[ak] = 0.0
+                elif ak == "outerP1" :
+                    kwargs[ak] = 0.0
+                elif ak == "outerP2" :
+                    kwargs[ak] = 0.0
                 elif ak == "e1" :
                     kwargs[ak] = 0.0
                 elif ak == "e2" :

@@ -4,6 +4,81 @@ import json as _json
 from .Builder import Element
 from .Builder import Line
 
+def _CalculateBoundingCuboidOriginCentred( width = 0.1, height = 0.1, length = 1.0):
+    # calculate the corners of the bounding cuboid
+
+    arb_r1 = _np.array([-length/2, -width/2, -height/2])
+    arb_r2 = _np.array([-length/2,  width/2, -height/2])
+    arb_r3 = _np.array([ length/2,  width/2, -height/2])
+    arb_r4 = _np.array([ length/2, -width/2, -height/2])
+
+    arb_r5 = _np.array([-length/2, -width/2,  height/2])
+    arb_r6 = _np.array([-length/2,  width/2,  height/2])
+    arb_r7 = _np.array([ length/2,  width/2,  height/2])
+    arb_r8 = _np.array([ length/2, -width/2,  height/2])
+
+    return _np.array([arb_r1, arb_r2, arb_r3, arb_r4, arb_r5, arb_r6, arb_r7, arb_r8])
+
+def _CalculateBoundingTrapezoidOriginCentred(width = 0.1, height = 0.1, length = 1.0,
+                                             e1 = 0.0, e2 = 0.0) :
+    # origin centred trapezoidal prism with parallel edges parallel to x, units in mm
+    # pole face rotation around z, units in mm
+
+    arb_r1 = _np.array([-length/2 - width/2*_np.tan(e1), -width/2, -height/2])
+    arb_r2 = _np.array([-length/2 + width/2*_np.tan(e1),  width/2, -height/2])
+    arb_r3 = _np.array([ length/2 - width/2*_np.tan(e2),  width/2, -height/2])
+    arb_r4 = _np.array([ length/2 + width/2*_np.tan(e2), -width/2, -height/2])
+
+    arb_r5 = _np.array([-length/2 - width/2*_np.tan(e1), -width/2,  height/2])
+    arb_r6 = _np.array([-length/2 + width/2*_np.tan(e1),  width/2,  height/2])
+    arb_r7 = _np.array([ length/2 - width/2*_np.tan(e2),  width/2,  height/2])
+    arb_r8 = _np.array([ length/2 + width/2*_np.tan(e2), -width/2,  height/2])
+
+    return _np.array([arb_r1, arb_r2, arb_r3, arb_r4, arb_r5, arb_r6, arb_r7, arb_r8])
+
+def _CalculateBoundingTrapezoidOriginCentredNew(width = 0.1, height = 0.1, length = 1.0,
+                                                e1 = 0.0, e2 = 0.0,
+                                                p1 = 0.0, p2 = 0.0) :
+    # origin centred trapezoidal prism with parallel edges parallel to x, units in mm
+    # pole face rotation around z, units in mm
+
+    # not normal polar resolution as z -> x, x -> y, y -> z
+    n1 = _np.array([-_np.cos(e1), _np.sin(e1)*_np.cos(p1), _np.sin(e1)*_np.sin(p1)])
+    n2 = _np.array([ _np.cos(e2), _np.sin(e2)*_np.cos(p2), _np.sin(e2)*_np.sin(p2)])
+
+    d1 = _np.dot(n1,_np.array([-length/2,0,0]))
+    d2 = _np.dot(n2,_np.array([ length/2,0,0]))
+
+    # nx*x + ny*y + nz*z = d, need x in terms of y and z to calculate the corners of the trapezoid
+    # x = (d - ny*y - nz*z)/nx
+
+    def x(n, d, y, z) :
+        return (d - n[1]*y - n[2]*z)/n[0]
+
+    arb_r1 = _np.array([ x(n1, d1, -width/2, -height/2), -width/2, -height/2])
+    arb_r2 = _np.array([ x(n1, d1,  width/2, -height/2),  width/2, -height/2])
+    arb_r3 = _np.array([ x(n2, d2,  width/2, -height/2),  width/2, -height/2])
+    arb_r4 = _np.array([ x(n2, d2, -width/2, -height/2), -width/2, -height/2])
+
+    arb_r5 = _np.array([ x(n1, d1, -width/2,  height/2), -width/2,  height/2])
+    arb_r6 = _np.array([ x(n1, d1,  width/2,  height/2),  width/2,  height/2])
+    arb_r7 = _np.array([ x(n2, d2,  width/2,  height/2),  width/2,  height/2])
+    arb_r8 = _np.array([ x(n2, d2, -width/2,  height/2), -width/2,  height/2])
+
+    return _np.array([arb_r1, arb_r2, arb_r3, arb_r4, arb_r5, arb_r6, arb_r7, arb_r8])
+
+def _RotateFromXTrapToZTrap(pnts) :
+
+    rot_z = _np.array([[ _np.cos(-_np.pi/2), -_np.sin(-_np.pi/2), 0],
+                       [ _np.sin(-_np.pi/2),  _np.cos(-_np.pi/2), 0],
+                       [                  0,                   0, 1]])
+
+    rot_x = _np.array([[1,                 0,                     0],
+                       [0,  _np.cos(-_np.pi/2), -_np.sin(-_np.pi/2)],
+                       [0,  _np.sin(-_np.pi/2) , _np.cos(-_np.pi/2)]])
+
+    return (rot_x @ rot_z @ pnts.T).T
+
 def _CalculateElementTransformation(e):
     if e.category == "drift" or  \
             e.category == "quadrupole" or \
@@ -19,7 +94,12 @@ def _CalculateElementTransformation(e):
             e.category == "customFluka" or \
             e.category == "sampler_plane":
 
-        length = e.length
+        l = e.length
+        c = l
+        outerE1 = e['outerE1']
+        outerE2 = e['outerE2']
+        outerP1 = e['outerP1']
+        outerP2 = e['outerP2']
 
         rotation = _np.array([[1,0,0],
                               [0,1,0],
@@ -30,26 +110,51 @@ def _CalculateElementTransformation(e):
         rot_end = rotation
 
         arc_sta = _np.array([0,0,0])
-        arc_end = _np.array([0,0,length])
+        arc_end = _np.array([0,0,l])
         arc_mid = arc_end/2.
 
         cho_sta = arc_sta
         cho_mid = arc_mid
         cho_end = arc_end
 
-        fac_sta = _np.array([0,0,-1])
-        fac_end = _np.array([0,0,1])
+        fac_sta = _np.array([_np.sin(outerE1)*_np.cos(outerP1), _np.sin(outerE1)*_np.sin(outerP1), -_np.cos(outerE1)])
+        fac_end = _np.array([_np.sin(outerE2)*_np.cos(outerP2), _np.sin(outerE2)*_np.sin(outerP2),  _np.cos(outerE2)])
+
+        fac_sta = rot_mid @ fac_sta
+        fac_end = rot_mid @ fac_end
+
+        # local cubical bounding box
+        cub_loc = _CalculateBoundingCuboidOriginCentred(width  = e['outerHorizontalSize']/1000,
+                                                        height = e['outerVerticalSize']/1000,
+                                                        length = l)
+        # local trapezoidal prism bounding box (+x aligned)
+        tra_loc = _CalculateBoundingTrapezoidOriginCentredNew(width  = e['outerHorizontalSize']/1000,
+                                                              height = e['outerVerticalSize']/1000,
+                                                              length = l,
+                                                              e1=outerE1,
+                                                              e2=outerE2,
+                                                              p1=outerP1,
+                                                              p2=outerP2)
+
+        # transform local cubical bounding box to global coordinates
+        cub = (rot_mid @ cub_loc.T).T + cho_mid;
+
+        # transform local trapezoidal prism to global coordinates (need to rotate from +x to +z aligned first)
+        tra = (rot_mid @ _RotateFromXTrapToZTrap(tra_loc).T).T + cho_mid;
 
         return {"rot_sta":rot_sta, "rot_mid":rot_mid, "rot_end":rot_end,
                 "arc_sta":arc_sta, "arc_mid":arc_mid, "arc_end":arc_end,
                 "cho_sta":cho_sta, "cho_mid":cho_mid, "cho_end":cho_end,
-                "fac_sta":fac_sta                   , "fac_end":fac_end}
+                "fac_sta":fac_sta                   , "fac_end":fac_end,
+                "cub_loc":cub_loc, "tra_loc":tra_loc,
+                "cub":cub,         "tra":tra}
 
     elif e.category == "rbend":
         # length is chord length
 
         a = e['angle']
         l = e.length
+        c = l
         t = 0
         if 'tilt' in e :
             t = e['tilt']
@@ -57,6 +162,10 @@ def _CalculateElementTransformation(e):
         if abs(a) < 1e-12:
             print("rbend: angle close to zero setting to 1e-12")
             a = 1e-12
+
+        # outer face rotations
+        outerE1 = e['outerE1']
+        outerE2 = e['outerE2']
 
         # bending radius
         rho = l/(2*_np.sin(a/2.0))
@@ -76,6 +185,7 @@ def _CalculateElementTransformation(e):
                              [ _np.sin(a), 0,  _np.cos(a)]])
 
 
+        rot_sta = tilt @ rot_sta @ _np.linalg.inv(tilt)
         rot_mid = tilt @ rot_mid @ _np.linalg.inv(tilt)
         rot_end = tilt @ rot_end @ _np.linalg.inv(tilt)
 
@@ -95,24 +205,44 @@ def _CalculateElementTransformation(e):
         cho_mid = tilt @ cho_mid
         cho_end = tilt @ cho_end
 
-        fac_sta = _np.array([0,0,-1])
-        fac_end = _np.array([0,0,1])
+        fac_sta = _np.array([_np.sin(outerE1), 0, -_np.cos(outerE1)])
+        fac_end = _np.array([_np.sin(outerE2), 0,  _np.cos(outerE2)])
 
-        fac_sta = rot_mid @ fac_sta
-        fac_end = rot_mid @ fac_end
+        fac_sta = rot_mid @ tilt @ fac_sta
+        fac_end = rot_mid @ tilt @ fac_end
+
+        # local cubical bounding box
+        cub_loc = _CalculateBoundingCuboidOriginCentred(width=e['outerHorizontalSize'] / 1000,
+                                                        height=e['outerVerticalSize'] / 1000,
+                                                        length=l)
+        # local trapezoidal prism bounding box (+x aligned)
+        tra_loc = _CalculateBoundingTrapezoidOriginCentred(width=e['outerHorizontalSize'] / 1000,
+                                                           height=e['outerVerticalSize'] / 1000,
+                                                           length=l,
+                                                           e1=outerE1,
+                                                           e2=outerE2)
+
+        # transform local cubical bounding box to global coordinates
+        cub = (rot_mid @ tilt @ cub_loc.T).T + cho_mid;
+
+        # transform local trapezoidal prism to global coordinates (need to rotate from +x to +z aligned first)
+        tra = (rot_mid @ tilt @ _RotateFromXTrapToZTrap(tra_loc).T).T + cho_mid;
 
         return {"rot_sta":rot_sta, "rot_mid":rot_mid, "rot_end":rot_end,
                 "arc_sta":arc_sta, "arc_mid":arc_mid, "arc_end":arc_end,
                 "cho_sta":cho_sta, "cho_mid":cho_mid, "cho_end":cho_end,
-                "fac_sta":fac_sta                   , "fac_end": fac_end}
+                "fac_sta":fac_sta                   , "fac_end":fac_end,
+                "cub_loc":cub_loc, "tra_loc":tra_loc,
+                "cub":cub,         "tra":tra}
+
 
     elif e.category == "sbend":
-        # length is qrc length
+        # length is arc length
 
         a = e['angle']
         l = e.length
+        c = 2*(l/a)*_np.sin(a/2)
         t = 0
-
         if 'tilt' in e:
             t = e['tilt']
 
@@ -120,12 +250,16 @@ def _CalculateElementTransformation(e):
             print("sbend: angle close to zero setting to 1e-12")
             a = 1e-12
 
+        # outer face rotations
+        outerE1 = e['outerE1']
+        outerE2 = e['outerE2']
+
         # bending radius
         rho = l/a
 
-        tilt = _np.array([[_np.cos(t), -_np.sin(t), 0],
-                          [_np.sin(t), _np.cos(t), 0],
-                          [0, 0, 1]])
+        tilt = _np.array([[ _np.cos(t), -_np.sin(t), 0],
+                          [ _np.sin(t),  _np.cos(t), 0],
+                          [          0,           0, 1]])
 
         rot_sta = _np.array([[1, 0, 0],
                              [0, 1, 0],
@@ -146,7 +280,7 @@ def _CalculateElementTransformation(e):
         arc_end = _np.array([rho*(_np.cos(a) - 1),0,rho*_np.sin(a)])
 
         cho_sta = _np.array([0,0,0])
-        cho_end = 2*(l/a)*_np.sin(a/2) * _np.array([-_np.sin(a/2),0,_np.cos(a/2)])
+        cho_end = c * _np.array([-_np.sin(a/2),0,_np.cos(a/2)])
         cho_mid = cho_end/2.0
 
         arc_sta = tilt @ arc_sta
@@ -157,21 +291,40 @@ def _CalculateElementTransformation(e):
         cho_mid = tilt @ cho_mid
         cho_end = tilt @ cho_end
 
-        fac_sta = _np.array([0,0,-1])
-        fac_end = _np.array([0,0,1])
+        fac_sta = _np.array([_np.sin(outerE1),0, -_np.cos(outerE1)])
+        fac_end = _np.array([_np.sin(outerE2),0, _np.cos(outerE2)])
 
-        fac_sta = rot_sta @ fac_sta
-        fac_end = rot_end @ fac_end
+        fac_sta = rot_mid @ tilt @ fac_sta
+        fac_end = rot_mid @ tilt @ fac_end
+
+        # local cubical bounding box
+        cub_loc = _CalculateBoundingCuboidOriginCentred(width=e['outerHorizontalSize'] / 1000,
+                                                        height=e['outerVerticalSize'] / 1000,
+                                                        length=c)
+        # local trapezoidal prism bounding box (+x aligned)
+        tra_loc = _CalculateBoundingTrapezoidOriginCentred(width=e['outerHorizontalSize'] / 1000,
+                                                           height=e['outerVerticalSize'] / 1000,
+                                                           length=c,
+                                                           e1=outerE1,
+                                                           e2=outerE2)
+
+        # transform local cubical bounding box to global coordinates
+        cub = (rot_mid @ tilt @ cub_loc.T).T + cho_mid;
+
+        # transform local trapezoidal prism to global coordinates (need to rotate from +x to +z aligned first)
+        tra = (rot_mid @ tilt @ _RotateFromXTrapToZTrap(tra_loc).T).T + cho_mid;
 
         return {"rot_sta":rot_sta, "rot_mid":rot_mid, "rot_end":rot_end,
                 "arc_sta":arc_sta, "arc_mid":arc_mid, "arc_end":arc_end,
                 "cho_sta":cho_sta, "cho_mid":cho_mid, "cho_end":cho_end,
-                "fac_sta":fac_sta                   , "fac_end":fac_end}
-
+                "fac_sta":fac_sta                   , "fac_end":fac_end,
+                "cub_loc":cub_loc, "tra_loc":tra_loc,
+                "cub":tra,         "tra":tra}
 
 class Coordinates(object) :
 
     def __init__(self):
+        # units in m
 
         self.sequence = []
         self.elements = {}
@@ -181,7 +334,13 @@ class Coordinates(object) :
         self.element_length = [] # length of element
         self.element_theta = [] # rotation around y
         self.element_psi   = [] # rotation around z
+        self.element_chord_length = [] # length of element along chord
 
+        self.Clear()
+
+        self.ibuild = 0
+
+    def Clear(self):
         self.len_sta = [] # length along reference trajectory at start of element
         self.len_mid = [] # length along reference trajectory at middle of element
         self.len_end = [] # length along reference trajectory at end of element
@@ -201,19 +360,13 @@ class Coordinates(object) :
         self.fac_sta = [] # normal vector to face at start of element
         self.fac_end = [] # normal vector to face at end of element
 
-        self.cub_low = [] # lower corder of bounding cuboid
-        self.cub_high = [] # upper corner of bounding cuboid
+        # cub/tra 6 face wed/raw/arb (first 4 loop clockwise around -z axis,
+        # second 4 loop clockwise around +z axis)
+        self.cub_loc = [] # cubical local
+        self.tra_loc = [] # trapezoidal prism local
 
-        # arb 6 face wed/raw/arb (first 4 loop clockwise around +z axis,
-        # second 4 loop clockwise around -z axis)
-        self.arb_r1 = [] # -z-x-y
-        self.arb_r2 = [] # -z-x+y
-        self.arb_r3 = [] # -z+x+y
-        self.arb_r4 = [] # -z+x-y
-        self.arb_r5 = [] # +z-x-y
-        self.arb_r6 = [] # +z-x+y
-        self.arb_r7 = [] # +z+x+y
-        self.arb_r8 = [] # +z+x-y
+        self.cub = [] # cubical global
+        self.tra = [] # trapezoidal prism global
 
     def Append(self, item, addToSequence=True):
         if not isinstance(item, (Element, Line)):
@@ -236,7 +389,7 @@ class Coordinates(object) :
             self.sequence.append(item.name)
 
     def __len__(self):
-        return len(self.element_name)
+        return len(self.elements)
 
     def Build(self, circular = False):
 
@@ -256,8 +409,14 @@ class Coordinates(object) :
             # bending angle
             try :
                 self.element_theta.append(e['angle'])
+                if e.category == "rbend" :
+                    self.element_chord_length.append(e.length)
+                elif e.category == "sbend" :
+                    chord = 2 * (e.length / e['angle']) * _np.sin(e['angle'] / 2)
+                    self.element_chord_length.append(chord)
             except KeyError :
                 self.element_theta.append(0)
+                self.element_chord_length.append(e.length)
 
             # tilt angle
             try :
@@ -280,6 +439,13 @@ class Coordinates(object) :
                 self.cho_end.append(t['cho_end'])
                 self.fac_sta.append(t['fac_sta'])
                 self.fac_end.append(t['fac_end'])
+
+                # append bounding boxes (both local and global coordinates)
+                self.cub_loc.append(t['cub_loc'])
+                self.tra_loc.append(t['tra_loc'])
+
+                self.cub.append(t['cub'])
+                self.tra.append(t['tra'])
             else:
                 # get last element variables
                 len_end = self.len_end[-1]
@@ -304,14 +470,31 @@ class Coordinates(object) :
                 self.fac_sta.append(rot_end @ t['fac_sta'])
                 self.fac_end.append(rot_end @ t['fac_end'])
 
-        self._CheckPoleFaces()
+                # append bounding boxes (both local and global coordinates)
+                self.cub_loc.append(t['cub_loc'])
+                self.tra_loc.append(t['tra_loc'])
+
+                self.cub.append((rot_end @ t['cub'].T).T + arc_end)
+                self.tra.append((rot_end @ t['tra'].T).T + arc_end)
+
+        # keep a build counter to terminate infinite recursion
+        self.ibuild += 1
+
+        # check pole faces before bounding cube/trapezoid
+        # if self._CheckPoleFaces() and self.ibuild < 2 :
+        if self._CheckPoleFaces() :
+            self.Clear()
+            self.Build(circular)
+
 
     def _CheckPoleFaces(self, circular = False):
+        update = False
+
         for i, element_name in enumerate(self.elements) :
 
             # current and next element indices
             i1 = i
-            if i < len(self)-1 :
+            if i < len(self.elements)-1 :
                 i2 = i+1
             else :
                 if circular :
@@ -319,13 +502,21 @@ class Coordinates(object) :
                 else :
                     continue
 
-            # drift/rbend
-            if self.element_category[i1] == "drift" and self.element_category[i2] == "rbend" :
-                self.fac_end[i1] = - self.fac_sta[i2]
-            # rbend/drift
-            if self.element_category[i1] == "rbend" and self.element_category[i2] == "drift" :
-                self.fac_sta[i2] = - self.fac_end[i1]
+            i1name = list(self.elements.keys())[i1]
+            i2name = list(self.elements.keys())[i2]
 
+            if _np.abs(self.fac_end[i1] + self.fac_sta[i2]).sum() > 1e-8:
+                if self.element_category[i1] == "drift" and self.element_category[i2] == "rbend":
+                    self.elements[i1name]['outerE2'] = -self.elements[i2name]['angle']/2.0
+                    self.elements[i1name]['outerP2'] = self.elements[i2name]['tilt']
+                    update = True
+
+                if self.element_category[i1] == "rbend" and self.element_category[i2] == "drift":
+                    self.elements[i2name]['outerE1'] = -self.elements[i1name]['angle']/2.0
+                    self.elements[i2name]['outerP1'] = self.elements[i1name]['tilt']
+                    update = True
+
+        return update
 
     def SaveJSON(self, file_name, indent = 0):
         dict_to_save = {}
@@ -355,17 +546,11 @@ class Coordinates(object) :
         dict_to_save['fac_sta'] = _np.array(self.fac_sta).tolist()
         dict_to_save['fac_end'] = _np.array(self.fac_end).tolist()
 
-        dict_to_save['cub_low'] = _np.array(self.cub_low).tolist()
-        dict_to_save['cub_high'] = _np.array(self.cub_high).tolist()
+        dict_to_save['cub_loc'] = _np.array(self.cub_loc).tolist()
+        dict_to_save['tra_loc'] = _np.array(self.tra_loc).tolist()
 
-        dict_to_save['arb_r1'] = _np.array(self.arb_r1).tolist()
-        dict_to_save['arb_r2'] = _np.array(self.arb_r2).tolist()
-        dict_to_save['arb_r3'] = _np.array(self.arb_r3).tolist()
-        dict_to_save['arb_r4'] = _np.array(self.arb_r4).tolist()
-        dict_to_save['arb_r5'] = _np.array(self.arb_r5).tolist()
-        dict_to_save['arb_r6'] = _np.array(self.arb_r6).tolist()
-        dict_to_save['arb_r7'] = _np.array(self.arb_r7).tolist()
-        dict_to_save['arb_r8'] = _np.array(self.arb_r8).tolist()
+        dict_to_save['cub'] = _np.array(self.cub).tolist()
+        dict_to_save['tra'] = _np.array(self.tra).tolist()
 
         # Pretty-printed
         with open(file_name, "w") as f:
@@ -404,17 +589,12 @@ class Coordinates(object) :
             self.fac_sta = [_np.array(e) for e in data['fac_sta']]
             self.fac_end = [_np.array(e) for e in data['fac_end']]
 
-            self.cub_low = [_np.array(e) for e in data['cub_low']]
-            self.cub_high = [_np.array(e) for e in data['cub_high']]
+            self.cub_loc = [_np.array(e) for e in data['cub_loc']]
+            self.tra_loc = [_np.array(e) for e in data['tra_loc']]
 
-            self.arb_r1 = [_np.array(e) for e in data['arb_r1']]
-            self.arb_r2 = [_np.array(e) for e in data['arb_r2']]
-            self.arb_r3 = [_np.array(e) for e in data['arb_r3']]
-            self.arb_r4 = [_np.array(e) for e in data['arb_r4']]
-            self.arb_r5 = [_np.array(e) for e in data['arb_r5']]
-            self.arb_r6 = [_np.array(e) for e in data['arb_r6']]
-            self.arb_r7 = [_np.array(e) for e in data['arb_r7']]
-            self.arb_r8 = [_np.array(e) for e in data['arb_r8']]
+            self.cub = [_np.array(e) for e in data['cub']]
+            self.tra = [_np.array(e) for e in data['tra']]
+
 
 
     def PandasDataFrame(self):
@@ -445,15 +625,10 @@ class Coordinates(object) :
         df['fac_sta'] = self.fac_sta
         df['fac_end'] = self.fac_end
 
-        df['cub_low'] = self.cub_low
-        df['cub_high'] = self.cub_high
-        df['arb_r1'] = self.arb_r1
-        df['arb_r2'] = self.arb_r2
-        df['arb_r3'] = self.arb_r3
-        df['arb_r4'] = self.arb_r4
-        df['arb_r5'] = self.arb_r5
-        df['arb_r6'] = self.arb_r6
-        df['arb_r7'] = self.arb_r7
-        df['arb_r8'] = self.arb_r8
+        df['cub_loc'] = self.cub_loc
+        df['tra_loc'] = self.tra_loc
+
+        df['cub'] = self.cub
+        df['tra'] = self.tra
 
         return df
