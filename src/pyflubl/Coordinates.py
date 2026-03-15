@@ -1,8 +1,8 @@
 import numpy as _np
 import json as _json
 
-from .Builder import Element
-from .Builder import Line
+from .Element import Element as _Element
+from .Line import Line as _Line
 
 def _CalculateBoundingCuboidOriginCentred( width = 0.1, height = 0.1, length = 1.0):
     # calculate the corners of the bounding cuboid
@@ -117,19 +117,30 @@ def _CalculateElementTransformation(e):
         cho_mid = arc_mid
         cho_end = arc_end
 
+        s_sta = 0
+        s_mid = l/2.0
+        s_end = l
+
         fac_sta = _np.array([_np.sin(outerE1)*_np.cos(outerP1), _np.sin(outerE1)*_np.sin(outerP1), -_np.cos(outerE1)])
         fac_end = _np.array([_np.sin(outerE2)*_np.cos(outerP2), _np.sin(outerE2)*_np.sin(outerP2),  _np.cos(outerE2)])
 
         fac_sta = rot_mid @ fac_sta
         fac_end = rot_mid @ fac_end
 
+        outerHorizontalSize = e['outerHorizontalSize'] / 1000
+        outerVerticalSize = e['outerVerticalSize'] / 1000
+
+        if e.category == "sampler_plane" :
+            outerHorizontalSize = e['samplerDiameter'] / 1000
+            outerVerticalSize = e['samplerDiameter'] / 1000
+
         # local cubical bounding box
-        cub_loc = _CalculateBoundingCuboidOriginCentred(width  = e['outerHorizontalSize']/1000,
-                                                        height = e['outerVerticalSize']/1000,
+        cub_loc = _CalculateBoundingCuboidOriginCentred(width  = outerHorizontalSize,
+                                                        height = outerVerticalSize,
                                                         length = l)
         # local trapezoidal prism bounding box (+x aligned)
-        tra_loc = _CalculateBoundingTrapezoidOriginCentredNew(width  = e['outerHorizontalSize']/1000,
-                                                              height = e['outerVerticalSize']/1000,
+        tra_loc = _CalculateBoundingTrapezoidOriginCentredNew(width  = outerHorizontalSize,
+                                                              height = outerVerticalSize,
                                                               length = l,
                                                               e1=outerE1,
                                                               e2=outerE2,
@@ -137,7 +148,7 @@ def _CalculateElementTransformation(e):
                                                               p2=outerP2)
 
         # transform local cubical bounding box to global coordinates
-        cub = (rot_mid @ cub_loc.T).T + cho_mid;
+        cub = (rot_mid @ _RotateFromXTrapToZTrap(cub_loc).T).T + cho_mid;
 
         # transform local trapezoidal prism to global coordinates (need to rotate from +x to +z aligned first)
         tra = (rot_mid @ _RotateFromXTrapToZTrap(tra_loc).T).T + cho_mid;
@@ -145,6 +156,7 @@ def _CalculateElementTransformation(e):
         return {"rot_sta":rot_sta, "rot_mid":rot_mid, "rot_end":rot_end,
                 "arc_sta":arc_sta, "arc_mid":arc_mid, "arc_end":arc_end,
                 "cho_sta":cho_sta, "cho_mid":cho_mid, "cho_end":cho_end,
+                "s_sta":s_sta,     "s_mid":s_mid,     "s_end":s_end,
                 "fac_sta":fac_sta                   , "fac_end":fac_end,
                 "cub_loc":cub_loc, "tra_loc":tra_loc,
                 "cub":cub,         "tra":tra}
@@ -205,6 +217,10 @@ def _CalculateElementTransformation(e):
         cho_mid = tilt @ cho_mid
         cho_end = tilt @ cho_end
 
+        s_sta = 0
+        s_mid = l/2
+        s_end = l
+
         fac_sta = _np.array([_np.sin(outerE1), 0, -_np.cos(outerE1)])
         fac_end = _np.array([_np.sin(outerE2), 0,  _np.cos(outerE2)])
 
@@ -223,7 +239,7 @@ def _CalculateElementTransformation(e):
                                                            e2=outerE2)
 
         # transform local cubical bounding box to global coordinates
-        cub = (rot_mid @ tilt @ cub_loc.T).T + cho_mid;
+        cub = (rot_mid @ tilt @ _RotateFromXTrapToZTrap(cub_loc).T).T + cho_mid;
 
         # transform local trapezoidal prism to global coordinates (need to rotate from +x to +z aligned first)
         tra = (rot_mid @ tilt @ _RotateFromXTrapToZTrap(tra_loc).T).T + cho_mid;
@@ -231,6 +247,7 @@ def _CalculateElementTransformation(e):
         return {"rot_sta":rot_sta, "rot_mid":rot_mid, "rot_end":rot_end,
                 "arc_sta":arc_sta, "arc_mid":arc_mid, "arc_end":arc_end,
                 "cho_sta":cho_sta, "cho_mid":cho_mid, "cho_end":cho_end,
+                "s_sta": s_sta,    "s_mid": s_mid,    "s_end": s_end,
                 "fac_sta":fac_sta                   , "fac_end":fac_end,
                 "cub_loc":cub_loc, "tra_loc":tra_loc,
                 "cub":cub,         "tra":tra}
@@ -291,13 +308,17 @@ def _CalculateElementTransformation(e):
         cho_mid = tilt @ cho_mid
         cho_end = tilt @ cho_end
 
+        s_sta = 0
+        s_mid = c/2
+        s_end = c
+
         fac_sta = _np.array([_np.sin(outerE1),0, -_np.cos(outerE1)])
         fac_end = _np.array([_np.sin(outerE2),0, _np.cos(outerE2)])
 
         fac_sta = rot_mid @ tilt @ fac_sta
         fac_end = rot_mid @ tilt @ fac_end
 
-        # local cubical bounding box
+        # local cubical bounding box ((+x aligned)
         cub_loc = _CalculateBoundingCuboidOriginCentred(width=e['outerHorizontalSize'] / 1000,
                                                         height=e['outerVerticalSize'] / 1000,
                                                         length=c)
@@ -309,7 +330,7 @@ def _CalculateElementTransformation(e):
                                                            e2=outerE2)
 
         # transform local cubical bounding box to global coordinates
-        cub = (rot_mid @ tilt @ cub_loc.T).T + cho_mid;
+        cub = (rot_mid @ tilt @ _RotateFromXTrapToZTrap(cub_loc).T).T + cho_mid;
 
         # transform local trapezoidal prism to global coordinates (need to rotate from +x to +z aligned first)
         tra = (rot_mid @ tilt @ _RotateFromXTrapToZTrap(tra_loc).T).T + cho_mid;
@@ -317,6 +338,7 @@ def _CalculateElementTransformation(e):
         return {"rot_sta":rot_sta, "rot_mid":rot_mid, "rot_end":rot_end,
                 "arc_sta":arc_sta, "arc_mid":arc_mid, "arc_end":arc_end,
                 "cho_sta":cho_sta, "cho_mid":cho_mid, "cho_end":cho_end,
+                "s_sta": s_sta,    "s_mid": s_mid,    "s_end": s_end,
                 "fac_sta":fac_sta                   , "fac_end":fac_end,
                 "cub_loc":cub_loc, "tra_loc":tra_loc,
                 "cub":tra,         "tra":tra}
@@ -357,6 +379,10 @@ class Coordinates(object) :
         self.cho_mid = [] # chord position at middle
         self.cho_end = [] # chord position at end
 
+        self.s_sta = [] # curvilinear position at start
+        self.s_mid = [] # curvilinear position at middle
+        self.s_end = [] # curvilinear position at end
+
         self.fac_sta = [] # normal vector to face at start of element
         self.fac_end = [] # normal vector to face at end of element
 
@@ -369,12 +395,12 @@ class Coordinates(object) :
         self.tra = [] # trapezoidal prism global
 
     def Append(self, item, addToSequence=True):
-        if not isinstance(item, (Element, Line)):
+        if not isinstance(item, (_Element, _Line)):
             msg = "Only Elements or Lines can be added to the machine"
             raise TypeError(msg)
         elif item.name not in list(self.elements.keys()):
             #hasn't been used before - define it
-            if type(item) is Line:
+            if type(item) is _Line:
                 for element in item:
                     self.Append(item)
             else:
@@ -437,6 +463,9 @@ class Coordinates(object) :
                 self.cho_sta.append(t['cho_sta'])
                 self.cho_mid.append(t['cho_mid'])
                 self.cho_end.append(t['cho_end'])
+                self.s_sta.append(t['s_sta'])
+                self.s_mid.append(t['s_mid'])
+                self.s_end.append(t['s_end'])
                 self.fac_sta.append(t['fac_sta'])
                 self.fac_end.append(t['fac_end'])
 
@@ -451,6 +480,7 @@ class Coordinates(object) :
                 len_end = self.len_end[-1]
                 rot_end = self.rot_end[-1]
                 arc_end = self.arc_end[-1]
+                s_end   = self.s_end[-1]
 
                 self.len_sta.append(len_end + 0)
                 self.len_mid.append(len_end + e.length/2.0)
@@ -466,6 +496,9 @@ class Coordinates(object) :
                 self.cho_sta.append(rot_end @ t['cho_sta'] + arc_end)
                 self.cho_mid.append(rot_end @ t['cho_mid'] + arc_end)
                 self.cho_end.append(rot_end @ t['cho_end'] + arc_end)
+                self.s_sta.append(s_end + t['s_sta'])
+                self.s_mid.append(s_end + t['s_mid'])
+                self.s_end.append(s_end + t['s_end'])
 
                 self.fac_sta.append(rot_end @ t['fac_sta'])
                 self.fac_end.append(rot_end @ t['fac_end'])
@@ -486,6 +519,30 @@ class Coordinates(object) :
             self.Clear()
             self.Build(circular)
 
+
+    def CalculateExtent(self):
+        # TODO improve with extent of traps
+
+        # loop over positions and find maxima
+        vmin = [9e99, 9e99, 9e99]
+        vmax = [-9e99, -9e99, -9e99]
+
+        for p in self.cho_end :
+            if p[0] < vmin[0] :
+                vmin[0] = p[0]
+            if p[1] < vmin[1] :
+                vmin[1] = p[1]
+            if p[2] < vmin[2] :
+                vmin[2] = p[2]
+
+            if p[0] > vmax[0]:
+                vmax[0] = p[0]
+            if p[1] > vmax[1] :
+                vmax[1] = p[1]
+            if p[2] > vmax[2] :
+                vmax[2] = p[2]
+
+        return [vmin,vmax]
 
     def _CheckPoleFaces(self, circular = False):
         update = False

@@ -7,6 +7,9 @@ except ImportError:
 
 from .Options import Options
 from . import Coordinates
+from . import Element
+from . import Line
+from . import BuilderNew
 from . import Builder
 from . import Fluka
 from . import Analysis

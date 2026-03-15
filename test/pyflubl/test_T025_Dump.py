@@ -1,8 +1,7 @@
 import pyflubl as _pfbl
-import numpy as _np
 import os as _os
 
-def make_T020_jcol() :
+def make_T025_dump() :
     this_dir = _os.path.dirname(_os.path.abspath(__file__))
 
     m = _pfbl.BuilderNew.Machine(bakeTransforms=True)
@@ -26,37 +25,26 @@ def make_T020_jcol() :
     m.AddStart(s)
 
     m.AddDrift(name="d1", length=1)
-
-    m.AddJCol(name="jc1", length=1,
-              horizontalWidth=200,
-              verticalWidth=200,
-              xsize=25,
-              material="IRON",
+    m.AddDump(name="p1", length=1,
+              horizontalWidth=250,
+              verticalWidth=150,
               outerMaterial="AIR")
     m.AddSamplerPlane(name="s1", length=1e-6)
+
     m.AddDrift(name="d2", length=1)
-
-    m.AddJCol(name="jc2", length=1, horizontalWidth=200,
-              xsize=25,
-              material="IRON",
-              outerMaterial="AIR", tilt=_np.pi/2)
+    m.AddDump(name="p2", length=1,
+              horizontalWidth=150,
+              verticalWidth=250,
+              outerMaterial="AIR",
+              apertureType="circular")
     m.AddSamplerPlane(name="s2", length=1e-6)
-    m.AddDrift(name="d3", length=1)
 
-    m.AddJCol(name="jc3", length=1, horizontalWidth=200,
-              xsizeLeft=10,
-              xsizeRight=20,
-              material="IRON",
-              outerMaterial="AIR")
-    m.AddSamplerPlane(name="s3", length=1e-6)
-    m.AddDrift(name="d4", length=1)
-
-    m.Write(this_dir+"/T020_JCol")
+    m.Write(this_dir+"/T025_dump")
 
     return m
 
-def test_T020_jcol() :
-    make_T020_jcol()
+def test_T025_dump() :
+    make_T025_dump()
 
 if __name__ == "__main__":
-    test_T020_jcol()
+    test_T025_dump()

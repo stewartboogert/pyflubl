@@ -1,7 +1,7 @@
 from pyg4ometry.fluka.card import Card as _Card
 from ._BaseCard import BaseCard as _BaseCard
 
-class Beam1(_BaseCard):
+class Beam(_BaseCard):
 
     def __init__(self,
                  momentumOrKe = None,

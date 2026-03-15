@@ -2,19 +2,19 @@ import pyflubl as _pfbl
 import numpy as _np
 import os as _os
 
-def make_T005_sbend() :
+def make_T003_sbend() :
     this_dir = _os.path.dirname(_os.path.abspath(__file__))
 
-    m = _pfbl.Builder.Machine(bakeTransforms=True)
+    m = _pfbl.BuilderNew.Machine(bakeTransforms=True)
 
     d = _pfbl.Fluka.Defaults('EM-CASCA')
     m.AddDefaults(d)
 
-    b = _pfbl.Fluka.Beam1(momentumOrKe=1, energySpread=0, sdum="ELECTRON")
+    b = _pfbl.Fluka.Beam(momentumOrKe=1, energySpread=0, sdum="ELECTRON")
     bp = _pfbl.Fluka.Beampos(xCentre=0, yCentre=0, zCentre=0, xCosine=0, yCosine=0)
     ba = _pfbl.Fluka.BeamAxes(xxCosine=1, xyCosine=0, xzCosine=0,
                               zxCosine=0, zyCosine=0, zzCosine=1)
-    m.AddBeam1(b)
+    m.AddBeam(b)
     m.AddBeampos(bp)
     m.AddBeamaxes(ba)
 
@@ -39,7 +39,7 @@ def make_T005_sbend() :
     m.AddDrift(name="d1",
                length=1,
                beampipeMaterial = "IRON",
-               outerMaterial = "VACUUM")
+               outerMaterial = "AIR")
     m.AddSamplerPlane(name="s1",
                       length=1e-4)
     m.AddSBend(name="sb1",
@@ -50,7 +50,7 @@ def make_T005_sbend() :
     m.AddDrift(name="d2",
                length=1,
                beampipeMaterial = "IRON",
-               outerMaterial = "VACUUM")
+               outerMaterial = "AIR")
     m.AddSamplerPlane(name="s3",
                       length=1e-4)
     m.AddSBend(name="sb2",
@@ -61,7 +61,7 @@ def make_T005_sbend() :
     m.AddDrift(name="d3",
                length=1,
                beampipeMaterial = "IRON",
-               outerMaterial = "VACUUM")
+               outerMaterial = "AIR")
     m.AddSamplerPlane(name="s5",
                       length=1e-4)
 
@@ -69,22 +69,22 @@ def make_T005_sbend() :
 
     return m
 
-def test_T005_sbend() :
-    make_T005_sbend()
+def test_T003_sbend() :
+    make_T003_sbend()
 
-def make_T005_sbend_tilt() :
+def make_T003_sbend_tilt() :
     this_dir = _os.path.dirname(_os.path.abspath(__file__))
 
-    m = _pfbl.Builder.Machine(bakeTransforms=True)
+    m = _pfbl.BuilderNew.Machine(bakeTransforms=True)
 
     d = _pfbl.Fluka.Defaults('EM-CASCA')
     m.AddDefaults(d)
 
-    b = _pfbl.Fluka.Beam1(momentumOrKe=1, energySpread=0.01, sdum="ELECTRON")
+    b = _pfbl.Fluka.Beam(momentumOrKe=1, energySpread=0.01, sdum="ELECTRON")
     bp = _pfbl.Fluka.Beampos(xCentre=0, yCentre=0, zCentre=0, xCosine=0, yCosine=0)
     ba = _pfbl.Fluka.BeamAxes(xxCosine=1, xyCosine=0, xzCosine=0,
                               zxCosine=0, zyCosine=0, zzCosine=1)
-    m.AddBeam1(b)
+    m.AddBeam(b)
     m.AddBeampos(bp)
     m.AddBeamaxes(ba)
 
@@ -108,8 +108,8 @@ def make_T005_sbend_tilt() :
 
     m.AddDrift(name="d1",
                length=1,
-               beampipeMaterial = "TUNGSTEN",
-               outerMaterial = "VACUUM")
+               beampipeMaterial = "IRON",
+               outerMaterial = "AIR")
     m.AddSamplerPlane(name="s1",
                       length=1e-4)
     m.AddSBend(name="sb1",
@@ -120,8 +120,8 @@ def make_T005_sbend_tilt() :
                       length=1e-4)
     m.AddDrift(name="d2",
                length=1,
-               beampipeMaterial = "TUNGSTEN",
-               outerMaterial = "VACUUM")
+               beampipeMaterial = "IRON",
+               outerMaterial = "AIR")
     m.AddSamplerPlane(name="s3",
                       length=1e-4)
     m.AddSBend(name="sb2",
@@ -132,30 +132,30 @@ def make_T005_sbend_tilt() :
                       length=1e-4)
     m.AddDrift(name="d3",
                length=1,
-               beampipeMaterial = "TUNGSTEN")
+               beampipeMaterial = "IRON")
     m.AddSamplerPlane(name="s5",
                       length=1e-4)
 
-    m.Write(this_dir+"/T005_SBend_tilt")
+    m.Write(this_dir+"/T003_SBend_tilt")
 
     return m
 
-def test_T005_sbend_tilt() :
-    make_T005_sbend_tilt()
+def test_T003_sbend_tilt() :
+    make_T003_sbend_tilt()
 
-def make_T005_sbend_split() :
+def make_T003_sbend_split() :
     this_dir = _os.path.dirname(_os.path.abspath(__file__))
 
-    m = _pfbl.Builder.Machine(bakeTransforms=True)
+    m = _pfbl.BuilderNew.Machine(bakeTransforms=True)
 
     d = _pfbl.Fluka.Defaults('EM-CASCA')
     m.AddDefaults(d)
 
-    b = _pfbl.Fluka.Beam1(momentumOrKe=1, energySpread=0.0, sdum="ELECTRON")
+    b = _pfbl.Fluka.Beam(momentumOrKe=1, energySpread=0.0, sdum="ELECTRON")
     bp = _pfbl.Fluka.Beampos(xCentre=0, yCentre=0, zCentre=0, xCosine=0, yCosine=0)
     ba = _pfbl.Fluka.BeamAxes(xxCosine=1, xyCosine=0, xzCosine=0,
                               zxCosine=0, zyCosine=0, zzCosine=1)
-    m.AddBeam1(b)
+    m.AddBeam(b)
     m.AddBeampos(bp)
     m.AddBeamaxes(ba)
 
@@ -182,8 +182,8 @@ def make_T005_sbend_split() :
 
     m.AddDrift(name="d1",
                length=1,
-               beampipeMaterial = "TUNGSTEN",
-               outerMaterial = "VACUUM")
+               beampipeMaterial = "IRON",
+               outerMaterial = "AIR")
     m.AddSamplerPlane(name="s1",
                       length=1e-4)
     m.AddSBendSplit(name="sb1",
@@ -194,8 +194,8 @@ def make_T005_sbend_split() :
                       length=1e-4)
     m.AddDrift(name="d2",
                length=1,
-               beampipeMaterial = "TUNGSTEN",
-               outerMaterial = "VACUUM")
+               beampipeMaterial = "IRON",
+               outerMaterial = "AIR")
     m.AddSamplerPlane(name="s3",
                       length=1e-4)
     m.AddSBendSplit(name="sb2",
@@ -206,31 +206,31 @@ def make_T005_sbend_split() :
                       length=1e-4)
     m.AddDrift(name="d3",
                length=1,
-               beampipeMaterial = "TUNGSTEN",
-               outerMaterial = "VACUUM")
+               beampipeMaterial = "IRON",
+               outerMaterial = "AIR")
     m.AddSamplerPlane(name="s5",
                       length=1e-4)
 
-    m.Write(this_dir+"/T005_SBend_split")
+    m.Write(this_dir+"/T003_SBend_split")
 
     return m
 
-def test_T005_sbend_split() :
-    make_T005_sbend_split()
+def test_T003_sbend_split() :
+    make_T003_sbend_split()
 
-def make_T005_sbend_split_tilt() :
+def make_T003_sbend_split_tilt() :
     this_dir = _os.path.dirname(_os.path.abspath(__file__))
 
-    m = _pfbl.Builder.Machine(bakeTransforms=True)
+    m = _pfbl.BuilderNew.Machine(bakeTransforms=True)
 
     d = _pfbl.Fluka.Defaults('EM-CASCA')
     m.AddDefaults(d)
 
-    b = _pfbl.Fluka.Beam1(momentumOrKe=1, energySpread=0.00, sdum="ELECTRON")
+    b = _pfbl.Fluka.Beam(momentumOrKe=1, energySpread=0.00, sdum="ELECTRON")
     bp = _pfbl.Fluka.Beampos(xCentre=0, yCentre=0, zCentre=0, xCosine=0, yCosine=0)
     ba = _pfbl.Fluka.BeamAxes(xxCosine=1, xyCosine=0, xzCosine=0,
                               zxCosine=0, zyCosine=0, zzCosine=1)
-    m.AddBeam1(b)
+    m.AddBeam(b)
     m.AddBeampos(bp)
     m.AddBeamaxes(ba)
 
@@ -255,7 +255,7 @@ def make_T005_sbend_split_tilt() :
     m.AddDrift(name="d1",
                length=1,
                beampipeMaterial = "IRON",
-               outerMaterial = "VACUUM")
+               outerMaterial = "AIR")
     m.AddSamplerPlane(name="s1",
                       length=1e-4)
     m.AddSBendSplit(name="sb1",
@@ -268,7 +268,7 @@ def make_T005_sbend_split_tilt() :
     m.AddDrift(name="d2",
                length=1,
                beampipeMaterial = "IRON",
-               outerMaterial = "VACUUM")
+               outerMaterial = "AIR")
     m.AddSamplerPlane(name="s3",
                       length=1e-4)
     m.AddSBendSplit(name="sb2",
@@ -281,30 +281,30 @@ def make_T005_sbend_split_tilt() :
     m.AddDrift(name="d3",
                length=1,
                beampipeMaterial = "IRON",
-               outerMaterial = "VACUUM")
+               outerMaterial = "AIR")
     m.AddSamplerPlane(name="s5",
                       length=1e-4)
 
-    m.Write(this_dir+"/T005_SBend_split_tilt")
+    m.Write(this_dir+"/T003_SBend_split_tilt")
 
     return m
 
-def test_T005_sbend_split_tilt() :
-    make_T005_sbend_split_tilt()
+def test_T003_sbend_split_tilt() :
+    make_T003_sbend_split_tilt()
 
-def make_T005_sbend_90deg() :
+def make_T003_sbend_split_90deg() :
     this_dir = _os.path.dirname(_os.path.abspath(__file__))
 
-    m = _pfbl.Builder.Machine(bakeTransforms=True)
+    m = _pfbl.BuilderNew.Machine(bakeTransforms=True)
 
     d = _pfbl.Fluka.Defaults('EM-CASCA')
     m.AddDefaults(d)
 
-    b = _pfbl.Fluka.Beam1(momentumOrKe=1, energySpread=0, sdum="ELECTRON")
+    b = _pfbl.Fluka.Beam(momentumOrKe=1, energySpread=0, sdum="ELECTRON")
     bp = _pfbl.Fluka.Beampos(xCentre=0, yCentre=0, zCentre=-1e-3, xCosine=0, yCosine=0)
     ba = _pfbl.Fluka.BeamAxes(xxCosine=1, xyCosine=0, xzCosine=0,
                               zxCosine=0, zyCosine=0, zzCosine=1)
-    m.AddBeam1(b)
+    m.AddBeam(b)
     m.AddBeampos(bp)
     m.AddBeamaxes(ba)
 
@@ -331,20 +331,20 @@ def make_T005_sbend_90deg() :
     m.AddSBendSplit(name="sb1",
                     length=7.853981633974483,
                     angle=_np.pi/2,
-                    nsplit=10)
+                    nsplit=50)
     m.AddSamplerPlane(name="s2",
                       length=1e-4)
 
-    m.Write(this_dir+"/T005_SBend_90deg")
+    m.Write(this_dir+"/T003_SBend_split_90deg")
 
     return m
 
-def test_T005_sbend_90deg() :
-    make_T005_sbend_90deg()
+def test_T003_sbend_split_90deg() :
+    make_T003_sbend_split_90deg()
 
 if __name__ == "__main__":
-    test_T005_sbend()
-    test_T005_sbend_tilt()
-    test_T005_sbend_split()
-    test_T005_sbend_split_tilt()
-    test_T005_sbend_90deg()
+    test_T003_sbend()
+    test_T003_sbend_tilt()
+    test_T003_sbend_split()
+    test_T003_sbend_split_tilt()
+    test_T003_sbend_split_90deg()

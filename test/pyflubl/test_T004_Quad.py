@@ -2,7 +2,7 @@ import pyflubl as _pfbl
 import numpy as _np
 import os as _os
 
-def make_T100_straight() :
+def make_quad(tilt = 0, offsetX = 0, offsetY = 0, fileName = "T006_Quad"):
     this_dir = _os.path.dirname(_os.path.abspath(__file__))
 
     m = _pfbl.BuilderNew.Machine(bakeTransforms=True)
@@ -14,7 +14,6 @@ def make_T100_straight() :
     bp = _pfbl.Fluka.Beampos(xCentre=0, yCentre=0, zCentre=0, xCosine=0, yCosine=0)
     ba = _pfbl.Fluka.BeamAxes(xxCosine=1, xyCosine=0, xzCosine=0,
                               zxCosine=0, zyCosine=0, zzCosine=1)
-
     m.AddBeam(b)
     m.AddBeampos(bp)
     m.AddBeamaxes(ba)
@@ -25,19 +24,27 @@ def make_T100_straight() :
     s = _pfbl.Fluka.Start(10)
     m.AddStart(s)
 
-    n = 5
-    for i in range(0,n,1):
-        m.AddDrift(name="d1_"+str(i), length=1,
-                   beampipeMaterial="TUNGSTEN",
-                   beampipeRadius=30, beampipeThickness=5)
-        m.AddSamplerPlane(name="s1_"+str(i), length=1e-6)
+    m.AddDrift(name="d1", length=1)
+    m.AddSamplerPlane(name="s1", length=1e-6)
+    m.AddQuadrupole(name="q1", length=0.5, k1=0.5, tilt=tilt, offsetX=offsetX, offsetY=offsetY)
+    m.AddSamplerPlane(name="s2", length=1e-6)
+    m.AddDrift(name="d2", length=1)
 
-    m.Write(this_dir+"/T100_Stright")
+    m.Write(this_dir+"/"+fileName)
 
     return m
 
-def test_T100_straight() :
-    make_T100_straight()
+def test_T004_quad() :
+    make_quad(fileName="T004_Quad")
+
+def test_T004_quad_tilt() :
+    make_quad(tilt=_np.pi/4, fileName="T004_Quad_tilt")
+
+def test_T004_quad_offsetX() :
+    make_quad(offsetX=50, fileName="T004_Quad_offsetX")
+
+def test_T004_quad_offsetY() :
+    make_quad(offsetY=50, fileName="T004_Quad_offsetY")
 
 if __name__ == "__main__":
-    test_T100_straight()
+    test_T004_quad()

@@ -18,10 +18,17 @@ class Options:
         # world material
         self._worldMaterial = "AIR"
 
+        # jcol defaults
+
+        # jcoltip defaults
+
+
         # sampler
         self._samplerMaterial = "VACUUM"
-        self._samplerLength = 1e-4
+        self._samplerLength = 1e-6
         self._samplerDiameter = 2000
+
+
 
     @property
     def vacuumMaterial(self):
