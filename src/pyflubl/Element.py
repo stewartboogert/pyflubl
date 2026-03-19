@@ -42,12 +42,15 @@ class ElementBase(_MutableMapping):
                 return
             else:
                 self._store[key] = value
-        else:
+        elif isinstance(value, str):
             if value.startswith('"') and value.endswith('"'):
                 # Prevent the buildup of quotes for multiple setitem calls
                 value = value.strip('"')
             #self._store[key] = '"{}"'.format(value)
             self._store[key]  = value
+        else :
+            self._store[key] = value
+
         if key not in {"name", "category"}: # keys which are not # 'extra'.
             self._keysextra.add(key)
 
@@ -177,11 +180,13 @@ class SplitOrJoinElement(Element) :
     def AddMachine(self, transform, machine):
         pass
 
+# TODO not needed
 class ElementCustomG4(Element):
     def __init__(self, name, length, containerLV, transform=_np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]),  **kwargs):
         super().__init__(name, "customG4", length, transform, None, **kwargs)
         self.containerLV = containerLV
 
+# TODO not needed
 class ElementCustomFluka(Element):
     def __init__(self, name, length, customOuterBodies, customRegions, flukaRegistry,
                  transform=_np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]), **kwargs):
@@ -190,6 +195,7 @@ class ElementCustomFluka(Element):
         self.regions = customRegions
         self.fluka_registry = flukaRegistry
 
+# TODO not needed
 class ElementGap(Element):
     def __init__(self, name, length, transform=_np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])):
         super().__init__(name, "gap", length, transform, None, **kwargs)

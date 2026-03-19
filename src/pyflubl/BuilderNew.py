@@ -246,16 +246,19 @@ class Machine(_Coordinates) :
     def AddCustomG4(self, name, length, containerLV, **kwargs):
         allowed_keys = _Element._outer_allowed_keys + \
                        _Element._customg4_allowed_keys + \
-                       _Element._customg4file_allowed_keys
+                       _Element._customg4file_allowed_keys + \
+                       _Element._tiltshift_allowed_keys
         self._CheckElementKwargs(kwargs,allowed_keys)
         self._SetDefaultElementKwargs(kwargs, allowed_keys)
-        e = _ElementCustomG4(name, length, containerLV, **kwargs)
+        e = _Element(name=name, category="customG4", length = length, **kwargs)
+        #e = _ElementCustomG4(name, length, containerLV, **kwargs)
         self.Append(e)
         return e
 
     def AddCustomG4File(self, name, length, **kwargs):
         allowed_keys = _Element._outer_allowed_keys + \
-                       _Element._customg4file_allowed_keys
+                       _Element._customg4file_allowed_keys + \
+                       _Element._tiltshift_allowed_keys
         self._CheckElementKwargs(kwargs,allowed_keys)
         self._SetDefaultElementKwargs(kwargs, allowed_keys)
 
@@ -278,10 +281,10 @@ class Machine(_Coordinates) :
         self._CheckElementKwargs(kwargs,allowed_keys)
         self._SetDefaultElementKwargs(kwargs, allowed_keys)
 
-        flukaRegistry = kwargs['flukaRegistry']
-        e = _ElementCustomFluka(name,
-                                length,
-                                **kwargs)
+        e = _Element(name=name,
+                     category="customFluka",
+                     length=length,
+                     **kwargs)
         self.Append(e)
         return e
 
@@ -298,8 +301,19 @@ class Machine(_Coordinates) :
         reader = _pyg4.fluka.Reader(geometry_file)
         registry = reader.getRegistry()
 
-        outer_bodies = [registry.bodyDict[k] for k in outer_bodies.split()]
-        regions = [registry.regionDict[k] for k in region_names.split()]
+        if isinstance(outer_bodies, str) :
+            outer_bodies = [registry.bodyDict[k] for k in outer_bodies.split()]
+        elif isinstance(outer_bodies, list) :
+            outer_bodies = [registry.bodyDict[k] for k in outer_bodies]
+
+        if isinstance(region_names, str) :
+            regions = [registry.regionDict[k] for k in region_names.split()]
+        elif isinstance(region_names, list) :
+            regions = [registry.regionDict[k] for k in region_names]
+
+        kwargs['geometryFile'] = geometry_file
+        kwargs['customOuterBodies'] = outer_bodies
+        kwargs['customRegions'] = regions
 
         self.AddCustomFluka(name,length,flukaRegistry=registry, **kwargs)
 
@@ -541,10 +555,6 @@ class Machine(_Coordinates) :
 
         # region number to name
         for i, r in enumerate(self.flukaregistry.regionDict) :
-
-            continue
-            # TODO implement below
-
             self.regionnumber_regionname[i+1] = self.flukaregistry.regionDict[r].name
             self.regionname_regionnumber[self.flukaregistry.regionDict[r].name] = i+1
 
@@ -872,6 +882,25 @@ class Machine(_Coordinates) :
                                      trapezoidalbound=trapezoidalbound,
                                      geant4RegistryAdd=g4add,
                                      flukaConvert=fc)
+        elif element.category == "customG4":
+            return self.MakeFlukaCustomG4(name=element.name,
+                                          element=element,
+                                          rotation=rotation,
+                                          translation=translation * 1000,
+                                          geomtranslation=geomtranslation * 1000,
+                                          cubicalbound=cubicalbound,
+                                          trapezoidalbound=trapezoidalbound,
+                                          geant4RegistryAdd=g4add,
+                                          flukaConvert=fc)
+        elif element.category == "customFluka":
+            return self.MakeFlukaCustomFluka(name=element.name,
+                                             element=element,
+                                             rotation=rotation,
+                                             translation=translation * 1000,
+                                             geomtranslation=geomtranslation * 1000,
+                                             cubicalbound=cubicalbound,
+                                             trapezoidalbound=trapezoidalbound,
+                                             flukaConvert=fc)
         elif element.category == "sampler_plane":
             return self.MakeFlukaSampler(name=element.name,
                                          element=element,
@@ -1600,6 +1629,91 @@ class Machine(_Coordinates) :
         return self._MakeFlukaComponentCommonG4(name,samplerlogical, samplerphysical, flukaConvert,
                                                 rotation, translation, geomtranslation, "sampler")
 
+    def MakeFlukaCustomG4(self,
+                         name,
+                         element,
+                         rotation = _np.array([[1,0,0],[0,1,0],[0,0,1],[0,0,0]]),
+                         translation = _np.array([0,0,0]),
+                         geomtranslation = _np.array([0,0,0]),
+                         cubicalbound = None,
+                         trapezoidalbound = None,
+                         geant4RegistryAdd = False,
+                         flukaConvert = True,
+                         material=None):
+
+        # length
+        length = element.length * 1000
+        rotation, translation = self._MakeOffsetAndTiltTransforms(element, rotation, translation)
+
+        outerHorizontalSize = element["outerHorizontalSize"]
+        outerVerticalSize   = element["outerVerticalSize"]
+        outerMaterial       = element["outerMaterial"]
+
+        # registry
+        g4registry = self._GetGeant4Registry(geant4RegistryAdd)
+
+        # make outer volume
+        [outerLogical, outerPhysical] = _MakeOuterTrapezoid(g4registry, name = name, motherLogical=self.worldLogical,
+                                                            tra_coords=trapezoidalbound*1000,
+                                                            outerVerticalSize=outerVerticalSize,
+                                                            outerMaterial=outerMaterial)
+
+
+        self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
+
+        self._MakeFlukaComponentCommonG4(name, outerLogical, outerPhysical, flukaConvert,
+                                         rotation, translation, geomtranslation, "customg4")
+
+    def MakeFlukaCustomFluka(self, name, element,
+                             rotation = _np.array([[1,0,0],[0,1,0],[0,0,1],[0,0,0]]),
+                             translation = _np.array([0,0,0]),
+                             geomtranslation = _np.array([0,0,0]),
+                             cubicalbound=None,
+                             trapezoidalbound=None,
+                             geant4RegistryAdd=False,
+                             flukaConvert=True):
+
+        regionNamesTransferred = []
+
+        outer_bodies  = element["customOuterBodies"]
+        regions       = element["customRegions"]
+        flukaRegistry = element['flukaRegistry']
+
+        if flukaConvert:
+            print('MakeFlukaCustomFluka')
+
+            # cut out regions for placement
+            for body in outer_bodies:
+                z = _pyg4.fluka.Zone()
+                z.addIntersection(body)
+                self.worldzone.addSubtraction(z)
+
+            # transfer bodies and regions to fluka registry
+            for region in regions:
+                regionNamesTransferred.append(region.name)
+
+                if region.name not in self.flukaregistry.regionDict :
+                    self.flukaregistry.addRegion(region)
+                for zone in region.zones :
+                    for body in zone.bodies() :
+                        if body.name not in self.flukaregistry.bodyDict :
+                            body = body._transform(rotation, translation)
+                            body._scale(0.1)
+                            self.flukaregistry.addBody(body)
+
+            # transfer materials to fluka registry
+            # loop over regions, find assignmas, find material
+            for region in regions:
+                region_name = region.name
+                fluka_registry = element['flukaRegistry']
+
+                mat = fluka_registry.assignmas[region.name]
+                self._GetFlukaRegistry(True).addMaterialAssignments(mat[0],region.name)
+
+        self._AddBookkeepingTransformation(name, rotation, translation)
+
+        self._MakeFlukaComponentCommonFluka(name, regionNamesTransferred, element.category)
+
     def _GetGeant4Registry(self,geant4RegistryAdd = False) :
         if geant4RegistryAdd:
             if  self.g4registry :
@@ -1683,6 +1797,15 @@ class Machine(_Coordinates) :
         # make transformed mesh for overlaps
         outerMesh = self._MakePlacedMesh(containerPV, rotation, geomtranslation)
         return {"placedmesh": outerMesh}
+
+    def _MakeFlukaComponentCommonFluka(self, name, regionNames, category) :
+
+        # make bookkeeping information
+        if name not in self.elementBookkeeping :
+            self.elementBookkeeping[name] = {}
+
+        self.elementBookkeeping[name]['flukaRegions'] = regionNames
+        self.elementBookkeeping[name]['category'] = category
 
     def _MakeGeant4GenericTrap(self, name,
                                length = 500, xhalfwidth = 50, yhalfwidth = 50,

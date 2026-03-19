@@ -76,7 +76,7 @@ def make_T035_Element_G4_File() :
     m.AddCustomG4File(name="c1", length=1, geometryFile=this_dir+"/geometryInput/test_T035_Custom_Pyg4.gdml", lvName="bl")
     m.AddSamplerPlane(name="s1", length=1e-6)
 
-    m.Write(this_dir+"/T035_Eustom_G4_File")
+    m.Write(this_dir+"/T035_Element_G4_File")
 
     return m
 
@@ -155,26 +155,21 @@ def make_T035_Element_Fluka_File() :
     s = _pfbl.Fluka.Start(10)
     m.AddStart(s)
 
-    # custom fluka geometry
-    reader = _pyg4.fluka.Reader(this_dir+"/geometryInput/test_T035_Custom_Fluka_Gap.inp")
-    registry = reader.getRegistry()
-
-    outer_bodies = [registry.bodyDict[k] for k in ['outer']]
-    regions = [registry.regionDict[k] for k in ['OUTER','SHIELD','BEAM','TARGET']]
-
     m.AddDrift(name="d1", length=1)
     m.AddSBend(name="b1", length=1, angle=_np.pi/8)
     m.AddDrift(name="d2", length=1)
     m.AddCustomFlukaFile(name="c1", length=1, geometryFile=this_dir+"/geometryInput/test_T035_Custom_Fluka_Gap.inp",
-                         customOuterBodies="outer",
-                         customRegions="OUTER SHIELD BEAM TARGET")
+                         customOuterBodies= ['outer'],
+                         customRegions=['OUTER','SHIELD','BEAM','TARGET'])
     m.AddSamplerPlane(name="s1", length=1e-6)
     m.AddDrift(name="d3",length=1)
     m.AddSBendSplit(name="b2", length=2, angle=-_np.pi/8)
     m.AddDrift(name="d4", length=1)
+
     m.Write(this_dir+"/T035_Element_Fluka_File")
 
     return m
+
 
 def test_T035_Element_Fluka_File() :
     make_T035_Element_Fluka_File()
