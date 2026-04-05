@@ -16,7 +16,7 @@ class Options:
         self._outerVerticalSize = 300
 
         # world material
-        self._worldMaterial = "AIR"
+        self._worldMaterial = "VACUUM"
 
         # jcol defaults
 
