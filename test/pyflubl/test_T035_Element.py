@@ -114,17 +114,19 @@ def make_T035_Element_Fluka() :
     regions = [registry.regionDict[k] for k in ['OUTER','SHIELD','BEAM','TARGET']]
 
     m.AddDrift(name="d1", length=1)
-    m.AddSBend(name="b1", length=1, angle=_np.pi/8)
+    m.AddSBendSplit(name="b1", length=1, angle=_np.pi/8)
     m.AddDrift(name="d2", length=1)
+    m.AddSamplerPlane(name="s1", length=1e-6)
+    m.AddDrift(name="d3",length=1)
+    m.AddSBendSplit(name="b2", length=2, angle=-_np.pi/8)
+    m.AddDrift(name="d4", length=1)
+    m.AddSamplerPlane(name="s2", length=1e-6)
     m.AddCustomFluka(name="c1",
                      length=1,
                      customOuterBodies = outer_bodies,
                      customRegions = regions,
                      flukaRegistry = registry)
-    m.AddSamplerPlane(name="s1", length=1e-6)
-    m.AddDrift(name="d3",length=1)
-    m.AddSBendSplit(name="b2", length=2, angle=-_np.pi/8)
-    m.AddDrift(name="d4", length=1)
+    m.AddSamplerPlane(name="s3", length=1e-6)
     m.Write(this_dir+"/T035_Element_Fluka")
 
     return m
@@ -156,15 +158,18 @@ def make_T035_Element_Fluka_File() :
     m.AddStart(s)
 
     m.AddDrift(name="d1", length=1)
-    m.AddSBend(name="b1", length=1, angle=_np.pi/8)
+    m.AddSBendSplit(name="b1", length=1, angle=_np.pi/8)
     m.AddDrift(name="d2", length=1)
-    m.AddCustomFlukaFile(name="c1", length=1, geometryFile=this_dir+"/geometryInput/test_T035_Custom_Fluka_Gap.inp",
-                         customOuterBodies= ['outer'],
-                         customRegions=['OUTER','SHIELD','BEAM','TARGET'])
     m.AddSamplerPlane(name="s1", length=1e-6)
     m.AddDrift(name="d3",length=1)
     m.AddSBendSplit(name="b2", length=2, angle=-_np.pi/8)
     m.AddDrift(name="d4", length=1)
+    m.AddSamplerPlane(name="s2", length=1e-6)
+    m.AddCustomFlukaFile(name="c1", length=1,
+                         geometryFile=this_dir+"/geometryInput/test_T035_Custom_Fluka_Gap.inp",
+                         customOuterBodies= ['outer'],
+                         customRegions=['OUTER','SHIELD','BEAM','TARGET'])
+    m.AddSamplerPlane(name="s3", length=1e-6)
 
     m.Write(this_dir+"/T035_Element_Fluka_File")
 

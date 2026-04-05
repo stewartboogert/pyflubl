@@ -419,6 +419,8 @@ class Coordinates(object) :
 
     def Build(self, circular = False):
 
+        self.Clear()
+
         for element_name in self.elements :
             e = self.elements[element_name]
             t = _CalculateElementTransformation(e)

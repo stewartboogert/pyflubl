@@ -27,6 +27,9 @@ from pyg4ometry.transformation import matrix2tbxyz as _matrix2tbxyz
 from pyg4ometry.transformation import tbxyz2matrix as _tbxyz2matrix
 from pyg4ometry.transformation import tbxyz2axisangle as _tbxyz2axisangle
 
+from .Fluka import Mgnfield as _Mgnfield
+from .Fluka import Mgncreat as _Mgncreat
+from .Fluka import Rotprbin as _Rotprbin
 
 class Machine(_Coordinates) :
     def __init__(self, bakeTransforms = True, verbose = False) :
@@ -315,7 +318,10 @@ class Machine(_Coordinates) :
         kwargs['customOuterBodies'] = outer_bodies
         kwargs['customRegions'] = regions
 
-        self.AddCustomFluka(name,length,flukaRegistry=registry, **kwargs)
+        self.AddCustomFluka(name,
+                            length,
+                            flukaRegistry=registry,
+                            **kwargs)
 
     def AddLatticeInstance(self, name, prototypeName):
         e = _Element(name=name,
@@ -486,8 +492,7 @@ class Machine(_Coordinates) :
         self.title = title
 
     def AddUsrbin(self, usrbin, rotmat = _np.array([[1,0,0],[0,1,0],[0,0,1]]), translation = _np.array([0,0,0])):
-        # TODO reimplement
-        '''
+
         self.usrbin.append(usrbin)
 
         # Add bookkeeping information
@@ -495,11 +500,12 @@ class Machine(_Coordinates) :
 
         # increment counter for added usrbin
         self.flukabincount += 1
-        '''
 
     def AddUsrbinToElement(self, element, usrbin = None, scaleUsrbinToElement = False):
-        # TODO reimplement
-        '''
+
+        # build coordinates
+        self.Build()
+
         # get element name
         if type(element) is str :
             element_name = element
@@ -510,18 +516,18 @@ class Machine(_Coordinates) :
         element_idx = list(self.elements.keys()).index(element_name)
 
         # get transformation
-        element_rotmat = self.midrotationint[element_idx]
+        element_rotmat = self.rot_mid[element_idx]
         element_rotmat_inv = _np.linalg.inv(element_rotmat)
 
         element_rot_inv = _matrix2tbxyz(element_rotmat_inv)
-        element_translation = self.midint[element_idx]*1000
+        element_translation = self.arc_mid[element_idx]*1000
         element_translation_inv = - element_rotmat_inv @ element_translation
 
         # make rotdefi
         transformation_name = "TB"+format(self.flukabincount, "03")
         rdi = _rotoTranslationFromTra2(transformation_name,[element_rot_inv, element_translation_inv])
         if len(rdi) > 0 :
-            self.flukaregistry.addRotoTranslation(rdi)
+            self._GetFlukaRegistry(flukaRegistryAdd=True).addRotoTranslation(rdi)
 
         # add ROTPRBIN
         rotprbin = _Rotprbin(storagePrecision=0,
@@ -531,7 +537,6 @@ class Machine(_Coordinates) :
 
         # add USRBIN
         self.AddUsrbin(usrbin, element_rotmat, element_translation)
-        '''
 
     def AddUserdump(self, userdump):
         self.userdump.append(userdump)
@@ -593,8 +598,7 @@ class Machine(_Coordinates) :
         if self.verbose :
             print("pyflubl.BuilderNew.Machine.Write: Writing model to file...")
 
-        if not self.flukaregistry :
-            self.MakeFlukaModel()
+        self.MakeFlukaModel()
 
         flukaINPFileName = filename+".inp"
         geant4GDMLFileName = filename+".gdml"
@@ -647,7 +651,7 @@ class Machine(_Coordinates) :
         fw.write(flukaINPFileName)
 
         gw = _pyg4.gdml.Writer()
-        gw.addDetector(self.g4registry)
+        gw.addDetector(self._GetGeant4Registry(geant4RegistryAdd=True))
         gw.write(geant4GDMLFileName)
 
         self._WriteBookkeepingInfo(bookkeepignFileName, pretty=prettyJSON)
@@ -709,9 +713,9 @@ class Machine(_Coordinates) :
         return self.flukaregistry
 
     def MakeGeant4InitialGeometry(self, worldsize = [5000, 5000, 5000], worldMaterial = "G4_AIR"):
-        worldSolid = _pyg4.geant4.solid.Box("world",worldsize[0], worldsize[1], worldsize[2], self.g4registry)
-        self.worldLogical = _pyg4.geant4.LogicalVolume(worldSolid, worldMaterial, "worldLogical", self.g4registry)
-        self.g4registry.setWorldVolume(self.worldLogical)
+        worldSolid = _pyg4.geant4.solid.Box("world",worldsize[0], worldsize[1], worldsize[2], self._GetGeant4Registry(geant4RegistryAdd=True))
+        self.worldLogical = _pyg4.geant4.LogicalVolume(worldSolid, worldMaterial, "worldLogical", self._GetGeant4Registry(geant4RegistryAdd=True))
+        self._GetGeant4Registry(geant4RegistryAdd=True).setWorldVolume(self.worldLogical)
 
     def MakeFlukaInitialGeometry(self, worldsize = [250, 250, 250], worldmaterial = "AIR"):
         blackbody = _pyg4.fluka.RPP("BLKBODY",
@@ -1680,8 +1684,6 @@ class Machine(_Coordinates) :
         flukaRegistry = element['flukaRegistry']
 
         if flukaConvert:
-            print('MakeFlukaCustomFluka')
-
             # cut out regions for placement
             for body in outer_bodies:
                 z = _pyg4.fluka.Zone()
@@ -1716,10 +1718,11 @@ class Machine(_Coordinates) :
 
     def _GetGeant4Registry(self,geant4RegistryAdd = False) :
         if geant4RegistryAdd:
-            if  self.g4registry :
+            if self.g4registry :
                 g4registry = self.g4registry
             else :
                 g4registry = _pyg4.geant4.Registry()
+                self.g4registry = g4registry
         else:
             g4registry = _pyg4.geant4.Registry()
 
@@ -1731,6 +1734,7 @@ class Machine(_Coordinates) :
                 flukaregistry = self.flukaregistry
             else :
                 flukaregistry = _pyg4.fluka.FlukaRegistry()
+                self.flukaregistry = flukaregistry
         else :
             flukaregistry = _pyg4.fluka.FlukaRegistry()
 
@@ -1753,6 +1757,9 @@ class Machine(_Coordinates) :
         self.elementBookkeeping[name]['geomtranslation'] = geomtranslation.tolist()
         self.elementBookkeeping[name]['angle'] = angle
         self.elementBookkeeping[name]['k1'] = k1
+
+    def _AddBookkeepingUsrbin(self, usrbinnumber, usrbinname, rotation = None, translation = None):
+        self.usrbinnumber_usrbininfo[usrbinnumber] = {"name":usrbinname, "rotation":rotation.tolist(), "translation":translation.tolist()}
 
     def _MakeFlukaComponentCommonG4(self, name, containerLV, containerPV, flukaConvert,
                                     rotation, translation, geomtranslation, category,
