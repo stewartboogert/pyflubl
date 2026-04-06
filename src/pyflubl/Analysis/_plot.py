@@ -204,8 +204,9 @@ def plot_coordinates_projection(coordinates, projection = "zx") :
         raise ValueError("Invalid projection",projection)
 
     if type(coordinates) == str :
-        coordinates = _Coordinates()
-        coordinates.LoadJSON(coordinates)
+        coordinates_new = _Coordinates()
+        coordinates_new.LoadJSON(coordinates)
+        coordinates = coordinates_new
 
     for i in range(0,len(coordinates),1) :
         length = coordinates.element_chord_length[i]*1000
