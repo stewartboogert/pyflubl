@@ -578,6 +578,9 @@ class Coordinates(object) :
         return update
 
     def SaveJSON(self, file_name, indent = 0):
+
+        self.Build()
+
         dict_to_save = {}
 
         dict_to_save['element_name'] = self.element_name
