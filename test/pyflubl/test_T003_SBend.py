@@ -2,7 +2,7 @@ import pyflubl as _pfbl
 import numpy as _np
 import os as _os
 
-def make_T003_sbend() :
+def make_T003_SBend() :
     this_dir = _os.path.dirname(_os.path.abspath(__file__))
 
     m = _pfbl.BuilderNew.Machine(bakeTransforms=True)
@@ -65,14 +65,14 @@ def make_T003_sbend() :
     m.AddSamplerPlane(name="s5",
                       length=1e-4)
 
-    m.Write(this_dir+"/T005_SBend")
+    m.Write(this_dir+"/T003_SBend")
 
     return m
 
-def test_T003_sbend() :
-    make_T003_sbend()
+def test_T003_SBend() :
+    make_T003_SBend()
 
-def make_T003_sbend_tilt() :
+def make_T003_SBend_tilt() :
     this_dir = _os.path.dirname(_os.path.abspath(__file__))
 
     m = _pfbl.BuilderNew.Machine(bakeTransforms=True)
@@ -140,10 +140,10 @@ def make_T003_sbend_tilt() :
 
     return m
 
-def test_T003_sbend_tilt() :
-    make_T003_sbend_tilt()
+def test_T003_SBend_tilt() :
+    make_T003_SBend_tilt()
 
-def make_T003_sbend_split() :
+def make_T003_SBend_split() :
     this_dir = _os.path.dirname(_os.path.abspath(__file__))
 
     m = _pfbl.BuilderNew.Machine(bakeTransforms=True)
@@ -215,10 +215,10 @@ def make_T003_sbend_split() :
 
     return m
 
-def test_T003_sbend_split() :
-    make_T003_sbend_split()
+def test_T003_SBend_split() :
+    make_T003_SBend_split()
 
-def make_T003_sbend_split_tilt() :
+def make_T003_SBend_split_tilt() :
     this_dir = _os.path.dirname(_os.path.abspath(__file__))
 
     m = _pfbl.BuilderNew.Machine(bakeTransforms=True)
@@ -289,10 +289,10 @@ def make_T003_sbend_split_tilt() :
 
     return m
 
-def test_T003_sbend_split_tilt() :
-    make_T003_sbend_split_tilt()
+def test_T003_SBend_split_tilt() :
+    make_T003_SBend_split_tilt()
 
-def make_T003_sbend_split_90deg() :
+def make_T003_SBend_split_90deg() :
     this_dir = _os.path.dirname(_os.path.abspath(__file__))
 
     m = _pfbl.BuilderNew.Machine(bakeTransforms=True)
@@ -339,12 +339,12 @@ def make_T003_sbend_split_90deg() :
 
     return m
 
-def test_T003_sbend_split_90deg() :
-    make_T003_sbend_split_90deg()
+def test_T003_SBend_split_90deg() :
+    make_T003_SBend_split_90deg()
 
 if __name__ == "__main__":
-    test_T003_sbend()
-    test_T003_sbend_tilt()
-    test_T003_sbend_split()
-    test_T003_sbend_split_tilt()
-    test_T003_sbend_split_90deg()
+    test_T003_SBend()
+    test_T003_SBend_tilt()
+    test_T003_SBend_split()
+    test_T003_SBend_split_tilt()
+    test_T003_SBend_split_90deg()
