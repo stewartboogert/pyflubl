@@ -415,7 +415,7 @@ class Coordinates(object) :
             self.sequence.append(item.name)
 
     def __len__(self):
-        return len(self.elements)
+        return max(len(self.elements), len(self.element_name))
 
     def Build(self, circular = False):
 
