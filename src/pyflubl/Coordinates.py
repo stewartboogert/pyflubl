@@ -585,6 +585,7 @@ class Coordinates(object) :
         dict_to_save['element_length'] = self.element_length
         dict_to_save['element_theta'] = self.element_theta
         dict_to_save['element_psi'] = self.element_psi
+        dict_to_save['element_chord_length'] = self.element_chord_length
 
         dict_to_save['len_sta'] = self.len_sta
         dict_to_save['len_mid'] = self.len_mid
@@ -627,6 +628,7 @@ class Coordinates(object) :
             self.element_length = data['element_length']
             self.element_theta = data['element_theta']
             self.element_psi = data['element_psi']
+            self.element_chord_length = data['element_chord_length']
 
             self.len_sta = data['len_sta']
             self.len_mid = data['len_mid']
