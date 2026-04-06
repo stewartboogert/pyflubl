@@ -363,6 +363,13 @@ class Coordinates(object) :
         self.ibuild = 0
 
     def Clear(self):
+        self.element_name = []
+        self.element_category = []
+        self.element_length = []
+        self.element_theta = []
+        self.element_psi = []
+        self.element_chord_length = []
+
         self.len_sta = [] # length along reference trajectory at start of element
         self.len_mid = [] # length along reference trajectory at middle of element
         self.len_end = [] # length along reference trajectory at end of element
