@@ -23,8 +23,17 @@ def make_usrbin() :
     s = _pfbl.Fluka.Start(1000)
     m.AddStart(s)
 
+    uic = _pfbl.Fluka.Usricall()
+    m.AddUsricall(uic)
+
+    uoc = _pfbl.Fluka.Usrocall()
+    m.AddUsrocall(uoc)
+
     ud = _pfbl.Fluka.Userdump(mgdraw=100,lun=23,mgdrawOption=-1,userDump=None, outputFile="dump")
     m.AddUserdump(ud)
+
+    # set world material
+    m.world_material = "VACUUM"
 
     m.AddDrift(name="d1", length=1, beampipeMaterial = "TUNGSTEN")
     m.AddSamplerPlane(name="s1", length=1e-6)
@@ -43,7 +52,7 @@ def make_usrbin() :
 
     return m
 
-def test_T289_Usrbin() :
+def make_T289_Usrbin() :
 
     this_dir = _os.path.dirname(_os.path.abspath(__file__))
 
@@ -66,7 +75,12 @@ def test_T289_Usrbin() :
 
     m.Write(this_dir+"/T289_Usrbin")
 
-def test_T289_Usrbin_element():
+    return m
+
+def test_T289_Usrbin() :
+    m = make_T289_Usrbin()
+
+def make_T289_Usrbin_element():
 
     this_dir = _os.path.dirname(_os.path.abspath(__file__))
 
@@ -87,6 +101,11 @@ def test_T289_Usrbin_element():
     m.AddUsrbinToElement("d4", eb2)
 
     m.Write(this_dir+"/T289_Usrbin_element")
+
+    return m
+
+def test_T289_Usrbin_element():
+    m = make_T289_Usrbin_element()
 
 if __name__ == "__main__":
     test_T289_Usrbin()
