@@ -27,13 +27,16 @@ def plot_usrdump(ud, projection = "xz", linewidth=1):
     if projection == "xz":
         for t in ud.track_data :
             _plt.plot([10*t[2],10*t[5]], [10*t[0],10*t[3]],
-                      "x-",
-                      color=(0.5, 0.5, 0.5),
+                      "-",
+                      color=(1.0, 0, 0),
                       linewidth=linewidth)
+            _plt.plot([10*t[2],10*t[5]], [10*t[0],10*t[3]],
+                      "o",
+                      color=(0, 0, 0))
 
     if projection == "":
         for t in ud.track_data :
-            _plt.plot([10*t[2],10*t[5]], [10*t[0],10*t[3]],"x",
+            _plt.plot([10*t[2],10*t[5]], [10*t[0],10*t[3]],"o",
                       linewidth=linewidth)
 
     #_plt.show()
