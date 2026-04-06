@@ -71,7 +71,7 @@ def MakeBeamPipeCircular(g4registry = None,
     vaclogical = _pyg4.geant4.LogicalVolume(vacsolid, vacuumMaterial, name + "_vac_lv", g4registry)
     vacphysical = _pyg4.geant4.PhysicalVolume([0, 0, 0], [0, 0, 0], vaclogical, name + "_vac_pv", bplogical, g4registry)
 
-    return [bplogical, bpphysical]
+    return [bplogical, bpphysical, vacphysical]
 
 def MakeBeamPipeElliptical(g4reg):
     pass

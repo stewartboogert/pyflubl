@@ -959,13 +959,13 @@ class Machine(_Coordinates) :
                                                             outerMaterial=outerMaterial)
 
         # make beampipe
-        [bpLogical, bpPhysical] = _MakeBeamPipeCircular(g4registry, motherLogical=outerLogical,
-                                                        name = name,
-                                                        length=length,
-                                                        beamPipeRadius=beampipeRadius,
-                                                        beamPipeThickness=beampipeThickness,
-                                                        beamPipeMaterialName=beampipeMaterialName,
-                                                        e1=e1, p1=p1, e2=e2, p2=p2)
+        [bpLogical, bpPhysical, vacPhysical] = _MakeBeamPipeCircular(g4registry, motherLogical=outerLogical,
+                                                                     name = name,
+                                                                     length=length,
+                                                                     beamPipeRadius=beampipeRadius,
+                                                                     beamPipeThickness=beampipeThickness,
+                                                                     beamPipeMaterialName=beampipeMaterialName,
+                                                                     e1=e1, p1=p1, e2=e2, p2=p2)
 
         self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
 
@@ -1014,13 +1014,13 @@ class Machine(_Coordinates) :
                                                             outerMaterial=outerMaterial)
 
         # make beampipe
-        [bpLogical, bpPhysical] = _MakeBeamPipeCircular(g4registry, motherLogical=outerLogical,
-                                                        name = name,
-                                                        length=length,
-                                                        beamPipeRadius=beampipeRadius,
-                                                        beamPipeThickness=beampipeThickness,
-                                                        beamPipeMaterialName=beampipeMaterialName,
-                                                        e1=e1, p1=p1, e2=e2, p2=p2)
+        [bpLogical, bpPhysical, vacPhysical] = _MakeBeamPipeCircular(g4registry, motherLogical=outerLogical,
+                                                                     name = name,
+                                                                     length=length,
+                                                                     beamPipeRadius=beampipeRadius,
+                                                                     beamPipeThickness=beampipeThickness,
+                                                                     beamPipeMaterialName=beampipeMaterialName,
+                                                                     e1=e1, p1=p1, e2=e2, p2=p2)
 
         self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
 
@@ -1074,13 +1074,13 @@ class Machine(_Coordinates) :
                                                             outerMaterial=outerMaterial)
 
         # make beampipe
-        [bpLogical, bpPhysical] = _MakeBeamPipeCircular(g4registry, motherLogical=outerLogical,
-                                                        name = name,
-                                                        length=chord,
-                                                        beamPipeRadius=beampipeRadius,
-                                                        beamPipeThickness=beampipeThickness,
-                                                        beamPipeMaterialName=beampipeMaterialName,
-                                                        e1=e1, p1=p1, e2=e2, p2=p2)
+        [bpLogical, bpPhysical, vacPhysical] = _MakeBeamPipeCircular(g4registry, motherLogical=outerLogical,
+                                                                     name = name,
+                                                                     length=chord,
+                                                                     beamPipeRadius=beampipeRadius,
+                                                                     beamPipeThickness=beampipeThickness,
+                                                                     beamPipeMaterialName=beampipeMaterialName,
+                                                                     e1=e1, p1=p1, e2=e2, p2=p2)
 
         self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
 
@@ -1129,13 +1129,13 @@ class Machine(_Coordinates) :
                                                             outerMaterial=outerMaterial)
 
         # make beampipe
-        [bpLogical, bpPhysical] = _MakeBeamPipeCircular(g4registry, motherLogical=outerLogical,
-                                                        name = name,
-                                                        length=length,
-                                                        beamPipeRadius=beampipeRadius,
-                                                        beamPipeThickness=beampipeThickness,
-                                                        beamPipeMaterialName=beampipeMaterialName,
-                                                        e1=e1, p1=p1, e2=e2, p2=p2)
+        [bpLogical, bpPhysical, vacPhysical] = _MakeBeamPipeCircular(g4registry, motherLogical=outerLogical,
+                                                                     name = name,
+                                                                     length=length,
+                                                                     beamPipeRadius=beampipeRadius,
+                                                                     beamPipeThickness=beampipeThickness,
+                                                                     beamPipeMaterialName=beampipeMaterialName,
+                                                                     e1=e1, p1=p1, e2=e2, p2=p2)
 
         self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
 
@@ -1405,13 +1405,13 @@ class Machine(_Coordinates) :
                                                             outerMaterial=outerMaterial)
 
         # make beampipe
-        [bpLogical, bpPhysical] = _MakeBeamPipeCircular(g4registry, motherLogical=outerLogical,
-                                                        name = name,
-                                                        length=length,
-                                                        beamPipeRadius=beampipeRadius,
-                                                        beamPipeThickness=beampipeThickness,
-                                                        beamPipeMaterialName=beampipeMaterialName,
-                                                        e1=e1, p1=p1, e2=e2, p2=p2)
+        [bpLogical, bpPhysical, vacPhysical] = _MakeBeamPipeCircular(g4registry, motherLogical=outerLogical,
+                                                                     name = name,
+                                                                     length=length,
+                                                                     beamPipeRadius=beampipeRadius,
+                                                                     beamPipeThickness=beampipeThickness,
+                                                                     beamPipeMaterialName=beampipeMaterialName,
+                                                                     e1=e1, p1=p1, e2=e2, p2=p2)
 
         # make shield
         [shieldLogical, shieldPhysical] = _MakeShield(g4registry,
@@ -1531,14 +1531,14 @@ class Machine(_Coordinates) :
                                                             outerMaterial=outerMaterial)
 
         # make beampipe
-        [bpLogical, bpPhysical] = _MakeBeamPipeCircular(g4registry,
-                                                        motherLogical=outerLogical,
-                                                        name = name,
-                                                        length=length,
-                                                        beamPipeRadius=beampipeRadius,
-                                                        beamPipeThickness=beampipeThickness,
-                                                        beamPipeMaterialName=beampipeMaterialName,
-                                                        e1=e1, p1=p1, e2=e2, p2=p2)
+        [bpLogical, bpPhysical, vacPhysical] = _MakeBeamPipeCircular(g4registry,
+                                                                     motherLogical=outerLogical,
+                                                                     name = name,
+                                                                     length=length,
+                                                                     beamPipeRadius=beampipeRadius,
+                                                                     beamPipeThickness=beampipeThickness,
+                                                                     beamPipeMaterialName=beampipeMaterialName,
+                                                                     e1=e1, p1=p1, e2=e2, p2=p2)
 
         # make wire
         [wireLogical, wirePhysical] = _MakeWireScanner(g4registry,
