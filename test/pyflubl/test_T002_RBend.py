@@ -2,7 +2,7 @@ import pyflubl as _pfbl
 import numpy as _np
 import os as _os
 
-def make_T002_rbend() :
+def make_T002_RBend() :
     this_dir = _os.path.dirname(_os.path.abspath(__file__))
 
     m = _pfbl.BuilderNew.Machine(bakeTransforms=True)
@@ -45,7 +45,7 @@ def make_T002_rbend() :
     #m.AddSamplerPlane(name="s1", length=1e-6, samplersize=1)
     m.AddRBend(name="rb1",
                length=1,
-               angle=_np.pi/8,
+               angle=_np.pi/18,
                beampipeMaterial = "IRON",
                beampipeRadius=30,
                beampipeThickness=5)
@@ -57,7 +57,7 @@ def make_T002_rbend() :
                outerMaterial="AIR")
     m.AddRBend(name="rb2",
                length=1,
-               angle=_np.pi/8,
+               angle=-_np.pi/18,
                beampipeMaterial = "IRON",
                beampipeRadius=30,
                beampipeThickness=5)
@@ -67,14 +67,15 @@ def make_T002_rbend() :
                beampipeRadius=30,
                beampipeThickness=5,
                outerMaterial="AIR")
+
     m.Write(this_dir+"/T002_RBend")
 
     return m
 
-def test_T002_rbend() :
-    make_T002_rbend()
+def test_T002_RBend() :
+    make_T002_RBend()
 
-def make_T002_rbend_tilt() :
+def make_T002_RBend_tilt() :
     this_dir = _os.path.dirname(_os.path.abspath(__file__))
 
     m = _pfbl.BuilderNew.Machine(bakeTransforms=True)
@@ -144,10 +145,10 @@ def make_T002_rbend_tilt() :
 
     return m
 
-def test_T002_rbend_tilt() :
-    make_T002_rbend_tilt()
+def test_T002_RBend_tilt() :
+    make_T002_RBend_tilt()
 
-def make_T002_rbend_90deg() :
+def make_T002_RBend_90deg() :
     this_dir = _os.path.dirname(_os.path.abspath(__file__))
 
     m = _pfbl.BuilderNew.Machine(bakeTransforms=True)
@@ -201,8 +202,10 @@ def make_T002_rbend_90deg() :
 
     return m
 
-def test_T002_rbend_90deg() :
-    make_T002_rbend_90deg()
+def test_T002_RBend_90deg() :
+    make_T002_RBend_90deg()
 
 if __name__ == "__main__":
-    test_T002_rbend()
+    test_T002_RBend()
+    test_T002_RBend_tilt()
+    test_T002_RBend_90deg()
