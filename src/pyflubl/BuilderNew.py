@@ -1046,7 +1046,6 @@ class Machine(_Coordinates) :
         angle = element["angle"]
         chord = 2 * (length / angle) * _np.sin(angle / 2)
 
-
         rotation, translation = self._MakeOffsetAndTiltTransforms(element, rotation, translation)
 
         outerHorizontalSize = element["outerHorizontalSize"]
