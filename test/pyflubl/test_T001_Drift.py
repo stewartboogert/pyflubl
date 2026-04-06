@@ -3,6 +3,8 @@ import os as _os
 import numpy as _np
 
 def make_T001_drift() :
+    '''Make a regular drift'''
+
     this_dir = _os.path.dirname(_os.path.abspath(__file__))
 
     m = _pfbl.BuilderNew.Machine(bakeTransforms=True, verbose=True)
@@ -46,11 +48,14 @@ def make_T001_drift() :
     m.AddSamplerPlane(name="s2",
                       length=1e-4)
 
+    m.SaveJSON(this_dir+"/T001_Drift_coordinate.json")
     m.Write(this_dir+"/T001_Drift")
 
     return m
 
 def make_T001_drift_many() :
+    '''Make many regular drifts'''
+
     this_dir = _os.path.dirname(_os.path.abspath(__file__))
 
     m = _pfbl.BuilderNew.Machine(bakeTransforms=True, verbose=True)
@@ -114,6 +119,8 @@ def make_T001_drift_many() :
     return m
 
 def make_T001_drift_cut_e() :
+    '''Make a drift with poleface rotation'''
+
     this_dir = _os.path.dirname(_os.path.abspath(__file__))
 
     m = _pfbl.BuilderNew.Machine(bakeTransforms=True, verbose=True)
@@ -159,6 +166,8 @@ def make_T001_drift_cut_e() :
     return m
 
 def make_T001_drift_cut_e_p() :
+    '''Make a drift with poleface rotation and tilt'''
+
     this_dir = _os.path.dirname(_os.path.abspath(__file__))
 
     m = _pfbl.BuilderNew.Machine(bakeTransforms=True, verbose=True)
