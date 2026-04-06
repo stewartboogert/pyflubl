@@ -1083,8 +1083,46 @@ class Machine(_Coordinates) :
 
         self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
 
-        return self._MakeFlukaComponentCommonG4(name,outerLogical, outerPhysical, flukaConvert,
-                                                rotation, translation, geomtranslation, "sbend")
+        ret_dict = self._MakeFlukaComponentCommonG4(name,outerLogical, outerPhysical, flukaConvert,
+                                                    rotation, translation, geomtranslation, "sbend")
+
+        # calculate field strength
+        rho = length/angle
+
+        # calculate field strength
+        b_field = self._CalculateDipoleFieldStrength(self.beam.momentum, rho)
+
+        # bookkeeping info for element
+        bki = self.elementBookkeeping[element.name]
+
+        # make field transform
+        translation = bki['translation']
+        rotation = _matrix2tbxyz(_np.array(bki['rotation']))
+        rdi = _rotoTranslationFromTra2("TM"+format(self.flukamgncount, "03"),[rotation, translation])
+        if len(rdi) > 0 :
+            self._GetFlukaRegistry(flukaRegistryAdd=True).addRotoTranslation(rdi)
+
+        # find vacuum region
+        vacuum_index = bki['physicalVolumes'].index(vacPhysical.name)
+        vacuum_region = bki['flukaRegions'][vacuum_index]
+
+        # make and assign field to region(s)
+        mgnname = "MG"+format(self.flukamgncount, "03")
+        mgnfield = _Mgnfield(strength=-b_field,rotDefini=rdi.name, applyRegion=0,
+                             regionFrom=vacuum_region, regionTo=None, regionStep=None,
+                             sdum = mgnname)
+        self.AddMgnfield(mgnfield)
+
+        mgncreat = _Mgncreat(fieldType=_Mgncreat.DIPOLE, applicableRadius=0, xOffset=0, yOffset=0, mirrorSymmetry=0, sdum=mgnname)
+        self.AddMgncreat(mgncreat)
+
+        # add magnetic field to assimat
+        self.flukaregistry.assignmaAddMagnetic(vacuum_region, mgnname)
+
+        # increment mgn count
+        self.flukamgncount += 1
+
+        return ret_dict
 
 
     def MakeFlukaQuadrupole(self,
@@ -1749,6 +1787,12 @@ class Machine(_Coordinates) :
         rotation =  rotation @ _tbxyz2matrix([0,0,tilt])
 
         return rotation, translation
+
+    def _CalculateDipoleFieldStrength(self, momentum, rho):
+        return 3.3356409519815204 * momentum / (rho / 1000.)
+
+    def _CalculateQuadrupoleFieldStrength(self, momentum, k1):
+        return 0
 
     def _AddBookkeepingTransformation(self, name, rotation, translation, geomtranslation = _np.array([0,0,0]), angle=0.0, k1=0.0):
         self.elementBookkeeping[name]['rotation'] = rotation.tolist()
