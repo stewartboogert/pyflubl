@@ -29,6 +29,7 @@ from pyg4ometry.transformation import tbxyz2axisangle as _tbxyz2axisangle
 
 from .Fluka import Mgnfield as _Mgnfield
 from .Fluka import Mgncreat as _Mgncreat
+from .Fluka import Stepsize as _Stepsize
 from .Fluka import Rotprbin as _Rotprbin
 
 class Machine(_Coordinates) :
@@ -92,6 +93,7 @@ class Machine(_Coordinates) :
         self.mgnfield = []
         self.mgncreat = []
         self.mgndata = []
+        self.stepsize = []
         self.rotprbin = []
         self.randomiz = None
         self.source = None
@@ -476,6 +478,9 @@ class Machine(_Coordinates) :
     def AddMgndata(self, mgndata):
         self.mgndata.append(mgndata)
 
+    def AddStepsize(self, stepsize):
+        self.stepsize.append(stepsize)
+
     def AddRotprbin(self, rotprbin):
         self.rotprbin.append(rotprbin)
 
@@ -624,6 +629,9 @@ class Machine(_Coordinates) :
         if len(self.mgncreat) > 0 :
             for mc in self.mgncreat:
                 mc.AddRegistry(self.flukaregistry)
+        if len(self.stepsize) > 0 :
+            for ss in self.stepsize:
+                ss.AddRegistry(self.flukaregistry)
         if len(self.rotprbin) > 0 :
             for pr in self.rotprbin:
                 pr.AddRegistry(self.flukaregistry)
@@ -1057,6 +1065,11 @@ class Machine(_Coordinates) :
         mgncreat = _Mgncreat(fieldType=_Mgncreat.DIPOLE, applicableRadius=0, xOffset=0, yOffset=0, mirrorSymmetry=0, sdum=mgnname)
         self.AddMgncreat(mgncreat)
 
+        # add stepsize
+        stepsize = _Stepsize(minStepSize=-0.1/1e3, maxStepSize=1.0,
+                             regionFrom=vacuum_region, regionTo=None, regionStep=None)
+        self.AddStepsize(stepsize)
+
         # add magnetic field to assimat
         self.flukaregistry.assignmaAddMagnetic(vacuum_region, mgnname)
 
@@ -1152,6 +1165,11 @@ class Machine(_Coordinates) :
 
         mgncreat = _Mgncreat(fieldType=_Mgncreat.DIPOLE, applicableRadius=0, xOffset=0, yOffset=0, mirrorSymmetry=0, sdum=mgnname)
         self.AddMgncreat(mgncreat)
+
+        # add stepsize
+        stepsize = _Stepsize(minStepSize=-0.1/1e3, maxStepSize=0.1,
+                             regionFrom=vacuum_region, regionTo=None, regionStep=None)
+        self.AddStepsize(stepsize)
 
         # add magnetic field to assimat
         self.flukaregistry.assignmaAddMagnetic(vacuum_region, mgnname)
