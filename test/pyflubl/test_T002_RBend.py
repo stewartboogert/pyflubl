@@ -118,7 +118,7 @@ def make_T002_RBend_tilt() :
     # m.AddSamplerPlane(name="s1", length=1e-6, samplersize=1)
     m.AddRBend(name="rb1",
                length=1,
-               angle=_np.pi/8,
+               angle=10/180*_np.pi,
                tilt=_np.pi/2,
                beampipeMaterial = "IRON",
                beampipeRadius=30,
@@ -131,7 +131,7 @@ def make_T002_RBend_tilt() :
                outerMaterial="AIR")
     m.AddRBend(name="rb2",
                length=1,
-               angle=_np.pi/8,
+               angle=-10/180*_np.pi,
                tilt=_np.pi/2,
                beampipeMaterial = "IRON",
                beampipeRadius=30,
