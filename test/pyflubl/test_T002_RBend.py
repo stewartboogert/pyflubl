@@ -42,7 +42,6 @@ def make_T002_RBend() :
                beampipeRadius=30,
                beampipeThickness=5,
                outerMaterial="AIR")
-    #m.AddSamplerPlane(name="s1", length=1e-6, samplersize=1)
     m.AddRBend(name="rb1",
                length=1,
                angle=10/180*_np.pi,
