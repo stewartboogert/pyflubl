@@ -1046,7 +1046,7 @@ class Machine(_Coordinates) :
 
         # make field transform
         translation = bki['translation']
-        rotation = _matrix2tbxyz(_np.array(bki['rotation']))
+        rotation = _matrix2tbxyz(_np.linalg.inv(_np.array(bki['rotation'])))
         rdi = _rotoTranslationFromTra2("TM"+format(self.flukamgncount, "03"),[rotation, translation])
         if len(rdi) > 0 :
             self.flukaregistry.addRotoTranslation(rdi)
@@ -1147,7 +1147,7 @@ class Machine(_Coordinates) :
 
         # make field transform
         translation = bki['translation']
-        rotation = _matrix2tbxyz(_np.array(bki['rotation']))
+        rotation = _matrix2tbxyz(_np.linalg.inv(_np.array(bki['rotation'])))
         rdi = _rotoTranslationFromTra2("TM"+format(self.flukamgncount, "03"),[rotation, translation])
         if len(rdi) > 0 :
             self._GetFlukaRegistry(flukaRegistryAdd=True).addRotoTranslation(rdi)
