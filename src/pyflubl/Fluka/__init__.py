@@ -6,6 +6,7 @@ from ._randomiz import *
 from ._rotprbin import *
 from ._source import *
 from ._start import *
+from ._stepsize import *
 from ._title import *
 from ._usricall import *
 from ._usrocall import *
