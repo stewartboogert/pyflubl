@@ -24,22 +24,36 @@ def plot(data):
         plot_usrdump(data)
 
 def plot_usrdump(ud, projection = "xz", linewidth=1):
+
     if projection == "xz":
-        for t in ud.track_data :
-            _plt.plot([10*t[2],10*t[5]], [10*t[0],10*t[3]],
-                      "-",
-                      color=(1.0, 0, 0),
-                      linewidth=linewidth)
-            _plt.plot([10*t[2],10*t[5]], [10*t[0],10*t[3]],
-                      "o",
-                      color=(0, 0, 0))
+        axis1 = 0
+        axis2 = 2
+    elif projection == "zx":
+        axis1 = 2
+        axis2 = 0
+    elif projection == "xy" :
+        axis1 = 0
+        axis2 = 1
+    elif projection == "yx" :
+        axis1 = 1
+        axis2 = 0
+    elif projection == "yz" :
+        axis1 = 1
+        axis2 = 2
+    elif projection == "zy" :
+        axis1 = 2
+        axis2 = 1
 
-    if projection == "":
-        for t in ud.track_data :
-            _plt.plot([10*t[2],10*t[5]], [10*t[0],10*t[3]],"o",
-                      linewidth=linewidth)
 
-    #_plt.show()
+    for t in ud.track_data :
+        _plt.plot([10*t[axis1],10*t[axis1+3]], [10*t[axis2],10*t[axis2+3]],
+                  "-",
+                  color=(1.0, 0, 0),
+                  linewidth=linewidth)
+        _plt.plot([10*t[axis1],10*t[axis1+3]], [10*t[axis2],10*t[axis2+3]],
+                  "o",
+                  color=(0, 0, 0))
+    _plt.show()
 
 def plot_usrbin(ub, detector_idx = 0, projection = 0, cmap = "Greens",
                 rotmatrix = _np.array([[1,0,0],[0,1,0],[0,0,1]]),
