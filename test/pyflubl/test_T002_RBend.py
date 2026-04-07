@@ -10,7 +10,7 @@ def make_T002_RBend() :
     d = _pfbl.Fluka.Defaults('EM-CASCA')
     m.AddDefaults(d)
 
-    b = _pfbl.Fluka.Beam(momentumOrKe=1, energySpread=0.01, sdum="ELECTRON")
+    b = _pfbl.Fluka.Beam(momentumOrKe=1, energySpread=0.0, sdum="ELECTRON")
     bp = _pfbl.Fluka.Beampos(xCentre=0, yCentre=0, zCentre=0, xCosine=0, yCosine=0)
     ba = _pfbl.Fluka.BeamAxes(xxCosine=1, xyCosine=0, xzCosine=0,
                               zxCosine=0, zyCosine=0, zzCosine=1)
@@ -21,7 +21,7 @@ def make_T002_RBend() :
     r = _pfbl.Fluka.Randomiz()
     m.AddRandomiz(r)
 
-    s = _pfbl.Fluka.Start(10)
+    s = _pfbl.Fluka.Start(1000)
     m.AddStart(s)
 
     uic = _pfbl.Fluka.Usricall()
@@ -45,7 +45,7 @@ def make_T002_RBend() :
     #m.AddSamplerPlane(name="s1", length=1e-6, samplersize=1)
     m.AddRBend(name="rb1",
                length=1,
-               angle=_np.pi/18,
+               angle=10/180*_np.pi,
                beampipeMaterial = "IRON",
                beampipeRadius=30,
                beampipeThickness=5)
@@ -57,7 +57,7 @@ def make_T002_RBend() :
                outerMaterial="AIR")
     m.AddRBend(name="rb2",
                length=1,
-               angle=-_np.pi/18,
+               angle=-10/180*_np.pi,
                beampipeMaterial = "IRON",
                beampipeRadius=30,
                beampipeThickness=5)
@@ -67,6 +67,8 @@ def make_T002_RBend() :
                beampipeRadius=30,
                beampipeThickness=5,
                outerMaterial="AIR")
+    m.AddSamplerPlane(name="s1",
+                      length=1e-4)
 
     m.Write(this_dir+"/T002_RBend")
 
@@ -83,7 +85,7 @@ def make_T002_RBend_tilt() :
     d = _pfbl.Fluka.Defaults('EM-CASCA')
     m.AddDefaults(d)
 
-    b = _pfbl.Fluka.Beam(momentumOrKe=1, energySpread=0.01, sdum="ELECTRON")
+    b = _pfbl.Fluka.Beam(momentumOrKe=1, energySpread=0.0, sdum="ELECTRON")
     bp = _pfbl.Fluka.Beampos(xCentre=0, yCentre=0, zCentre=0, xCosine=0, yCosine=0)
     ba = _pfbl.Fluka.BeamAxes(xxCosine=1, xyCosine=0, xzCosine=0,
                               zxCosine=0, zyCosine=0, zzCosine=1)
@@ -156,7 +158,7 @@ def make_T002_RBend_90deg() :
     d = _pfbl.Fluka.Defaults('EM-CASCA')
     m.AddDefaults(d)
 
-    b = _pfbl.Fluka.Beam(momentumOrKe=1, energySpread=0, sdum="ELECTRON")
+    b = _pfbl.Fluka.Beam(momentumOrKe=1, energySpread=0.0, sdum="ELECTRON")
     bp = _pfbl.Fluka.Beampos(xCentre=0, yCentre=0, zCentre=-1e-3, xCosine=0, yCosine=0)
     ba = _pfbl.Fluka.BeamAxes(xxCosine=1, xyCosine=0, xzCosine=0,
                               zxCosine=0, zyCosine=0, zzCosine=1)
