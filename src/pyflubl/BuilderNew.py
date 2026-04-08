@@ -1231,8 +1231,52 @@ class Machine(_Coordinates) :
 
         self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
 
-        return self._MakeFlukaComponentCommonG4(name,outerLogical, outerPhysical, flukaConvert,
-                                                rotation, translation, geomtranslation, "quad")
+        ret_dict = self._MakeFlukaComponentCommonG4(name,outerLogical, outerPhysical, flukaConvert,
+                                                    rotation, translation, geomtranslation, "quad")
+
+        # calculate field strength
+        q_over_p = self.beam.charge/self.beam.momentum
+
+        # calculate fluka K
+        k1_fluka = element['k1']/q_over_p
+
+        # bookkeeping info for element
+        bki = self.elementBookkeeping[element.name]
+
+        # make field transform
+        translation = -_np.array(bki['translation'])
+        rotation = _matrix2tbxyz(_np.linalg.inv(_np.array(bki['rotation'])))
+        rdi = _rotoTranslationFromTra2("TM"+format(self.flukamgncount, "03"),[rotation, translation])
+        if len(rdi) > 0 :
+            self._GetFlukaRegistry(flukaRegistryAdd=True).addRotoTranslation(rdi)
+
+        # find vacuum region
+        vacuum_index = bki['physicalVolumes'].index(vacPhysical.name)
+        vacuum_region = bki['flukaRegions'][vacuum_index]
+
+        # make and assign field to region(s)
+        mgnname = "MG"+format(self.flukamgncount, "03")
+        mgnfield = _Mgnfield(strength=-k1_fluka,rotDefini=rdi.name, applyRegion=0,
+                             regionFrom=vacuum_region, regionTo=None, regionStep=None,
+                             sdum = mgnname)
+        self.AddMgnfield(mgnfield)
+
+        mgncreat = _Mgncreat(fieldType=_Mgncreat.QUADRUPOLE, applicableRadius=0, xOffset=0, yOffset=0, mirrorSymmetry=0, sdum=mgnname)
+        self.AddMgncreat(mgncreat)
+
+        # add stepsize
+        stepsize = _Stepsize(minStepSize=-0.1/1e3, maxStepSize=0.1,
+                             regionFrom=vacuum_region, regionTo=None, regionStep=None)
+        self.AddStepsize(stepsize)
+
+        # add magnetic field to assimat
+        self.flukaregistry.assignmaAddMagnetic(vacuum_region, mgnname)
+
+        # increment mgn count
+        self.flukamgncount += 1
+
+        return ret_dict
+
 
     def MakeFlukaTarget(self,
                         name,
