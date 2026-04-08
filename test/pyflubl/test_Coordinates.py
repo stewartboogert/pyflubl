@@ -2,7 +2,7 @@ import pyflubl as _pfbl
 import numpy as _np
 import os as _os
 
-def test_T001_drift_coordinates() :
+def test_T001_Drift_coordinates() :
     m = _pfbl.BuilderNew.Machine()
     e = m.AddDrift("d1", length=1)
 
@@ -10,11 +10,11 @@ def test_T001_drift_coordinates() :
     c.Append(e)
 
     c.Build()
-    c.SaveJSON("T001_drift_coordinates.json")
+    c.SaveJSON("T001_Drift_coordinates.json")
 
     # return c
 
-def test_T001_drift_many_coordinates() :
+def test_T001_Drift_many_coordinates() :
     m = _pfbl.BuilderNew.Machine()
     e1 = m.AddDrift("d1", length=1)
     e2 = m.AddDrift("d2", length=2)
@@ -26,11 +26,11 @@ def test_T001_drift_many_coordinates() :
     c.Append(e3)
 
     c.Build()
-    c.SaveJSON("T001_drift_many_coordinates.json")
+    c.SaveJSON("T001_Drift_many_coordinates.json")
 
     # return c
 
-def test_T002_rbend_coordinates() :
+def test_T002_RBend_coordinates() :
     m = _pfbl.BuilderNew.Machine()
     e = m.AddRBend("rb1", length=1, angle=30/180.*_np.pi)
 
@@ -38,11 +38,11 @@ def test_T002_rbend_coordinates() :
     c.Append(e)
 
     c.Build()
-    c.SaveJSON("T002_rbend_coordinates.json")
+    c.SaveJSON("T002_RBend_coordinates.json")
 
     # return c
 
-def test_T002_rbend_poleface_coordinates() :
+def test_T002_RBend_poleface_coordinates() :
     m = _pfbl.BuilderNew.Machine()
     e = m.AddRBend("rb1", length=1, angle=45/180.*_np.pi, e1=45/180.*_np.pi, e2=45/180.*_np.pi)
 
@@ -50,11 +50,11 @@ def test_T002_rbend_poleface_coordinates() :
     c.Append(e)
 
     c.Build()
-    c.SaveJSON("T002_rbend_poleface_coordinates.json")
+    c.SaveJSON("T002_RBend_poleface_coordinates.json")
 
     # return c
 
-def test_T002_rbend_many_coordinates() :
+def test_T002_RBend_many_coordinates() :
     m = _pfbl.BuilderNew.Machine()
     e1 = m.AddRBend("rb1", length=1, angle=30/180.*_np.pi)
     e2 = m.AddRBend("rb2", length=1, angle=30/180.*_np.pi)
@@ -76,11 +76,11 @@ def test_T002_rbend_many_coordinates() :
     c.Append(e7)
 
     c.Build()
-    c.SaveJSON("T002_rbend_many_coordinates.json")
+    c.SaveJSON("T002_RBend_many_coordinates.json")
 
     # return c
 
-def test_T002_rbend_dogleg_coordinates() :
+def test_T002_RBend_dogleg_coordinates() :
     m = _pfbl.BuilderNew.Machine()
     e1 = m.AddRBend("rb1", length=1, angle=30/180.*_np.pi)
     e2 = m.AddRBend("rb2", length=1, angle=-30/180.*_np.pi)
@@ -97,11 +97,11 @@ def test_T002_rbend_dogleg_coordinates() :
     c.Append(e6)
 
     c.Build()
-    c.SaveJSON("T002_rbend_dogleg_coordinates.json")
+    c.SaveJSON("T002_RBend_dogleg_coordinates.json")
 
     # return c
 
-def test_T002_rbend_tilt_coordinates() :
+def test_T002_RBend_tilt_coordinates() :
     m = _pfbl.BuilderNew.Machine()
     e = m.AddRBend("rb1", length=1, angle=30/180.*_np.pi, tilt=_np.pi/2)
 
@@ -109,11 +109,11 @@ def test_T002_rbend_tilt_coordinates() :
     c.Append(e)
 
     c.Build()
-    c.SaveJSON("T002_rbend_tilt_coordinates.json")
+    c.SaveJSON("T002_RBend_tilt_coordinates.json")
 
     # return c
 
-def test_T002_rbend_tilt_many_coordinates() :
+def test_T002_RBend_tilt_many_coordinates() :
     m = _pfbl.BuilderNew.Machine()
     e1 = m.AddRBend("rb1", length=1, angle=30/180.*_np.pi, tilt=_np.pi/2)
     e2 = m.AddRBend("rb2", length=1, angle=30/180.*_np.pi, tilt=_np.pi/2)
@@ -134,11 +134,11 @@ def test_T002_rbend_tilt_many_coordinates() :
     c.Append(e7)
 
     c.Build()
-    c.SaveJSON("T002_rbend_tilt_many_coordinates.json")
+    c.SaveJSON("T002_RBend_tilt_many_coordinates.json")
 
     #return c
 
-def test_T002_rbend_bend_tilt_many_coordinates() :
+def test_T002_RBend_bend_tilt_many_coordinates() :
     m = _pfbl.BuilderNew.Machine()
 
     rb1 = m.AddRBend("rb1", length=1, angle=30/180.*_np.pi)
@@ -174,11 +174,11 @@ def test_T002_rbend_bend_tilt_many_coordinates() :
     c.Append(d7)
 
     c.Build()
-    c.SaveJSON("T002_rbend_bend_tilt_many_coordinates.json")
+    c.SaveJSON("T002_RBend_bend_tilt_many_coordinates.json")
 
     # return c
 
-def test_T003_sbend_coordinates() :
+def test_T003_SBend_coordinates() :
     m = _pfbl.BuilderNew.Machine()
     e = m.AddSBend("sb1", length=1, angle=30/180.*_np.pi)
 
@@ -186,11 +186,11 @@ def test_T003_sbend_coordinates() :
     c.Append(e)
 
     c.Build()
-    c.SaveJSON("T003_sbend_coordinates.json")
+    c.SaveJSON("T003_SBend_coordinates.json")
 
     # return c
 
-def test_T003_sbend_many_coordinates() :
+def test_T003_SBend_many_coordinates() :
     m = _pfbl.BuilderNew.Machine()
     e1 = m.AddSBend("sb1", length=1, angle=30/180.*_np.pi)
     e2 = m.AddSBend("sb2", length=1, angle=30/180.*_np.pi)
@@ -212,11 +212,11 @@ def test_T003_sbend_many_coordinates() :
     c.Append(e7)
 
     c.Build()
-    c.SaveJSON("T003_sbend_many_coordinates.json")
+    c.SaveJSON("T003_SBend_many_coordinates.json")
 
     # return c
 
-def test_T003_sbend_dogleg_coordinates() :
+def test_T003_SBend_dogleg_coordinates() :
     m = _pfbl.BuilderNew.Machine()
     e1 = m.AddSBend("sb1", length=1, angle=30/180.*_np.pi)
     e2 = m.AddSBend("sb2", length=1, angle=-30/180.*_np.pi)
@@ -234,11 +234,11 @@ def test_T003_sbend_dogleg_coordinates() :
     c.Append(e6)
 
     c.Build()
-    c.SaveJSON("T003_sbend_dogleg_coordinates.json")
+    c.SaveJSON("T003_SBend_dogleg_coordinates.json")
 
     # return c
 
-def test_T003_sbend_tilt_many_coordinates() :
+def test_T003_SBend_tilt_many_coordinates() :
     m = _pfbl.BuilderNew.Machine()
     e1 = m.AddSBend("sb1", length=1, angle=30.0/180.*_np.pi, tilt=_np.pi/2)
     e2 = m.AddSBend("sb2", length=1, angle=30.0/180.*_np.pi, tilt=_np.pi/2)
@@ -259,11 +259,11 @@ def test_T003_sbend_tilt_many_coordinates() :
     c.Append(e7)
 
     c.Build()
-    c.SaveJSON("T003_sbend_tilt_many_coordinates.json")
+    c.SaveJSON("T003_SBend_tilt_many_coordinates.json")
 
     # return c
 
-def test_T003_sbend_tilt_coordinates() :
+def test_T003_SBend_tilt_coordinates() :
     m = _pfbl.BuilderNew.Machine()
     e = m.AddRBend("sb1", length=1, angle=30/180.*_np.pi, tilt=_np.pi/2)
 
@@ -271,11 +271,11 @@ def test_T003_sbend_tilt_coordinates() :
     c.Append(e)
 
     c.Build()
-    c.SaveJSON("T003_sbend_tilt_coordinates.json")
+    c.SaveJSON("T003_SBend_tilt_coordinates.json")
 
     # return c
 
-def test_T004_quad_coordinates() :
+def test_T004_Quad_coordinates() :
     m = _pfbl.BuilderNew.Machine()
     e1 = m.AddDrift("d1",length=1.0)
     e2 = m.AddQuadrupole("q1",length=1.0, k1=0.1)
@@ -287,7 +287,7 @@ def test_T004_quad_coordinates() :
     c.Append(e3)
 
     c.Build()
-    c.SaveJSON("T004_quad_coordinates.json")
+    c.SaveJSON("T004_Quad_coordinates.json")
 
     # return c
     
