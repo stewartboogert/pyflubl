@@ -24,6 +24,15 @@ def make_quad(tilt = 0, offsetX = 0, offsetY = 0, fileName = "T006_Quad"):
     s = _pfbl.Fluka.Start(10)
     m.AddStart(s)
 
+    uic = _pfbl.Fluka.Usricall()
+    m.AddUsricall(uic)
+
+    ud = _pfbl.Fluka.Userdump(mgdraw=100,lun=23,mgdrawOption=-1,userDump=None, outputFile="dump")
+    m.AddUserdump(ud)
+
+    uoc = _pfbl.Fluka.Usrocall()
+    m.AddUsrocall(uoc)
+
     m.AddDrift(name="d1", length=1)
     m.AddSamplerPlane(name="s1", length=1e-6)
     m.AddQuadrupole(name="q1", length=0.5, k1=0.5, tilt=tilt, offsetX=offsetX, offsetY=offsetY)
@@ -41,10 +50,10 @@ def test_T004_quad_tilt() :
     make_quad(tilt=_np.pi/4, fileName="T004_Quad_tilt")
 
 def test_T004_quad_offsetX() :
-    make_quad(offsetX=50, fileName="T004_Quad_offsetX")
+    make_quad(offsetX=1, fileName="T004_Quad_offsetX")
 
 def test_T004_quad_offsetY() :
-    make_quad(offsetY=50, fileName="T004_Quad_offsetY")
+    make_quad(offsetY=1, fileName="T004_Quad_offsetY")
 
 if __name__ == "__main__":
     test_T004_quad()
