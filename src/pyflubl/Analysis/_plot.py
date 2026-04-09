@@ -53,7 +53,7 @@ def plot_usrdump(ud, projection = "xz", linewidth=1):
         _plt.plot([10*t[axis1],10*t[axis1+3]], [10*t[axis2],10*t[axis2+3]],
                   "o",
                   color=(0, 0, 0))
-    _plt.show()
+    #_plt.show()
 
 def plot_usrbin(ub, detector_idx = 0, projection = 0, cmap = "Greens",
                 rotmatrix = _np.array([[1,0,0],[0,1,0],[0,0,1]]),
