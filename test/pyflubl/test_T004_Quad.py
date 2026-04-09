@@ -46,14 +46,14 @@ def make_quad(tilt = 0, offsetX = 0, offsetY = 0, fileName = "T006_Quad"):
 def test_T004_quad() :
     make_quad(fileName="T004_Quad")
 
-def test_T004_quad_tilt() :
-    make_quad(tilt=_np.pi/4, fileName="T004_Quad_tilt")
-
 def test_T004_quad_offsetX() :
     make_quad(offsetX=1, fileName="T004_Quad_offsetX")
 
 def test_T004_quad_offsetY() :
     make_quad(offsetY=1, fileName="T004_Quad_offsetY")
+
+def test_T004_quad_tilt() :
+    make_quad(tilt=_np.pi/4, offsetX=1, fileName="T004_Quad_tilt")
 
 if __name__ == "__main__":
     test_T004_quad()
