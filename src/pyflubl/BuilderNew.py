@@ -1299,10 +1299,10 @@ class Machine(_Coordinates) :
         outerVerticalSize   = element["outerVerticalSize"]
         outerMaterial       = element["outerMaterial"]
 
-        targetMaterial = element["material"]
-        targetApertureType = element["apertureType"]
+        targetMaterial       = element["material"]
+        targetApertureType   = element["apertureType"]
         targetHorizontalSize = element["horizontalWidth"]
-        targetVerticalSize = element["verticalWidth"]
+        targetVerticalSize   = element["verticalWidth"]
 
         e1 = element["outerE1"]
         e2 = element["outerE2"]
@@ -1354,10 +1354,10 @@ class Machine(_Coordinates) :
         outerMaterial       = element["outerMaterial"]
 
         horizontalWidth = element['horizontalWidth']
-        verticalWidth = element['verticalWidth']
-        material = element['material']
-        xsize = element['xsize']
-        ysize = element['ysize']
+        verticalWidth   = element['verticalWidth']
+        material        = element['material']
+        xsize           = element['xsize']
+        ysize           = element['ysize']
 
         g4registry = self._GetGeant4Registry(geant4RegistryAdd)
 
@@ -1403,10 +1403,10 @@ class Machine(_Coordinates) :
         outerMaterial       = element["outerMaterial"]
 
         horizontalWidth = element['horizontalWidth']
-        verticalWidth = element['verticalWidth']
-        material = element['material']
-        xsize = element['xsize']
-        ysize = element['ysize']
+        verticalWidth   = element['verticalWidth']
+        material        = element['material']
+        xsize           = element['xsize']
+        ysize           = element['ysize']
 
         g4registry = self._GetGeant4Registry(geant4RegistryAdd)
 
@@ -1453,15 +1453,15 @@ class Machine(_Coordinates) :
         outerVerticalSize   = element["outerVerticalSize"]
         outerMaterial       = element["outerMaterial"]
 
-        xsize = element['xsize']
-        ysize = element['ysize']
-        xsizeLeft = element['xsizeLeft']
-        xsizeRight = element['xsizeRight']
-        jawTiltLeft = element['jawTiltLeft']
-        jawTiltRight = element['jawTiltRight']
+        xsize           = element['xsize']
+        ysize           = element['ysize']
+        xsizeLeft       = element['xsizeLeft']
+        xsizeRight      = element['xsizeRight']
+        jawTiltLeft     = element['jawTiltLeft']
+        jawTiltRight    = element['jawTiltRight']
         horizontalWidth = element['horizontalWidth']
-        verticalWidth = element['verticalWidth']
-        material = element['material']
+        verticalWidth   = element['verticalWidth']
+        material        = element['material']
 
         g4registry = self._GetGeant4Registry(geant4RegistryAdd)
 
@@ -1527,10 +1527,10 @@ class Machine(_Coordinates) :
         p2 = element['outerP2']
 
         horizontalWidth = element["horizontalWidth"]
-        verticalWidth = element["verticalWidth"]
-        xsize = element["xsize"]
-        ysize = element["ysize"]
-        material = element["material"]
+        verticalWidth   = element["verticalWidth"]
+        xsize           = element["xsize"]
+        ysize           = element["ysize"]
+        material        = element["material"]
 
         g4registry = self._GetGeant4Registry(geant4RegistryAdd)
 
@@ -1590,8 +1590,8 @@ class Machine(_Coordinates) :
 
         # material = element["material"]
         horizontalWidth = element["horizontalWidth"]
-        verticalWidth = element["verticalWidth"]
-        apertureType = element["apertureType"]
+        verticalWidth   = element["verticalWidth"]
+        apertureType    = element["apertureType"]
 
         g4registry = self._GetGeant4Registry(geant4RegistryAdd)
 
@@ -1646,15 +1646,15 @@ class Machine(_Coordinates) :
         beampipeMaterialName = element["beampipeMaterial"]
         beampipeRadius       = element["beampipeRadius"]
         beampipeThickness    = element["beampipeThickness"]
-        vacuumMaterial = element["vacuumMaterial"]
+        vacuumMaterial       = element["vacuumMaterial"]
 
         wireMaterial = element["wireMaterial"]
         wireDiameter = element["wireDiameter"]
-        wireLength = element["wireLength"]
-        wireAngle = element["wireAngle"]
-        wireOffsetX = element["wireOffsetX"]
-        wireOffsetY = element["wireOffsetY"]
-        wireOffsetZ = element["wireOffsetZ"]
+        wireLength   = element["wireLength"]
+        wireAngle    = element["wireAngle"]
+        wireOffsetX  = element["wireOffsetX"]
+        wireOffsetY  = element["wireOffsetY"]
+        wireOffsetZ  = element["wireOffsetZ"]
 
         g4registry = self._GetGeant4Registry(geant4RegistryAdd)
 
