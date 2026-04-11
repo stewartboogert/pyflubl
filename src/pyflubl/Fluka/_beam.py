@@ -54,7 +54,7 @@ class Beam(_BaseCard):
     def divergence(self):
         return self._divergence
 
-    @energySpread.setter
+    @divergence.setter
     def divergence(self, value):
         self._divergence = value
         self.card.what3 = value

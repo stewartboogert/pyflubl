@@ -43,7 +43,8 @@ def plot_usrdump(ud, projection = "xz", linewidth=1):
     elif projection == "zy" :
         axis1 = 2
         axis2 = 1
-
+    else :
+        raise ValueError("projection must be xz, yz, xy or zx, yz, yx")
 
     for t in ud.track_data :
         _plt.plot([10*t[axis1],10*t[axis1+3]], [10*t[axis2],10*t[axis2+3]],

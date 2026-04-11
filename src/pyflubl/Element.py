@@ -197,5 +197,5 @@ class ElementCustomFluka(Element):
 
 # TODO not needed
 class ElementGap(Element):
-    def __init__(self, name, length, transform=_np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])):
+    def __init__(self, name, length, transform=_np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]), **kwargs):
         super().__init__(name, "gap", length, transform, None, **kwargs)

@@ -1,10 +1,11 @@
 from .Element import Element as _Element
+import textwrap as _textwrap
 
 class Line(list) :
     def __init__(self, name, *args):
         self.category = "line"
         for item in args[0]:
-            if type(item) != _Element:
+            if isinstance(item, _Element):
                 raise TypeError("Line is a list of Elements")
 
         list.__init__(self,*args)

@@ -28,8 +28,6 @@ class Options:
         self._samplerLength = 1e-6
         self._samplerDiameter = 2000
 
-
-
     @property
     def vacuumMaterial(self):
         return self._vacuumMaterial
@@ -38,7 +36,7 @@ class Options:
     def vacuumMaterial(self, value):
         if not value:
             raise ValueError("Name cannot be empty")
-        self._worldMaterial = value
+        self._vacuumMaterial = value
 
     @property
     def beampipeMaterial(self):

@@ -2,9 +2,6 @@ import pyflubl as _pfbl
 import os as _os
 import numpy as _np
 
-from sympy.solvers.benchmarks.bench_solvers import timeit_linsolve_trivial
-
-
 def make_T019_ecol() :
     this_dir = _os.path.dirname(_os.path.abspath(__file__))
 
