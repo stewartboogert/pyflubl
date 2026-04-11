@@ -1,4 +1,4 @@
-FLUKA_ROOT_PATH=/tmp/fluka4-4.0/
+FLUKA_ROOT_PATH=/tmp/fluka4-5.1/
 FLUKA_BIN=$(FLUKA_ROOT_PATH)/bin
 
 FFF=$(FLUKA_BIN)/fff

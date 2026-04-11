@@ -1,7 +1,7 @@
 from pyg4ometry.fluka.card import Card as _Card
 from ._BaseCard import BaseCard as _BaseCard
 
-class Beam1(_BaseCard):
+class Beam(_BaseCard):
 
     def __init__(self,
                  momentumOrKe = None,
@@ -19,6 +19,16 @@ class Beam1(_BaseCard):
         # store momentum as will be required to scale magnets
         self._momentum = momentumOrKe
 
+        # store enegy spread
+        self._energySpread = energySpread
+
+        # store divergence
+        self._divergence = divergence
+
+        # store widths
+        self._xWidth = xWidth
+        self._yWidth = yWidth
+
         # store particle as might be needed for mass
         self._particle = sdum
 
@@ -32,6 +42,42 @@ class Beam1(_BaseCard):
         self.card.what1 = value
 
     @property
+    def energySpread(self):
+        return self._energySpread
+
+    @energySpread.setter
+    def energySpread(self, value):
+        self._energySpread = value
+        self.card.what2 = value
+
+    @property
+    def divergence(self):
+        return self._divergence
+
+    @divergence.setter
+    def divergence(self, value):
+        self._divergence = value
+        self.card.what3 = value
+
+    @property
+    def xWidth(self):
+        return self._xWidth
+
+    @xWidth.setter
+    def xWidth(self, value):
+        self._xWidth = value
+        self.card.what4 = value
+
+    @property
+    def yWidth(self):
+        return self._yWidth
+
+    @yWidth.setter
+    def yWidth(self, value):
+        self._yWidth = value
+        self.card.what5 = value
+
+    @property
     def particle(self):
         return self._particle
 
@@ -39,6 +85,13 @@ class Beam1(_BaseCard):
     def particle(self, value):
         self._particle = value
         self.card.sdum = value
+
+    @property
+    def charge(self):
+        if self._particle == "ELECTRON":
+            return -1
+        else :
+            return 0
 
 class BeamAxes(_BaseCard):
     def __init__(self,

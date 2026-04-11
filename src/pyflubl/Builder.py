@@ -359,7 +359,10 @@ class Line(list) :
 
 class Machine(object) :
 
-    _outer_allowed_keys = ["outerHorizontalSize", "outerVerticalSize","outerMaterial"]
+    _outer_allowed_keys = ["outerHorizontalSize",
+                           "outerVerticalSize","outerMaterial",
+                           "outerE1", "outerE2",
+                           "outerP1", "outerP2"]
     _beampipe_allowed_keys = ["vacuumMaterial", "beampipeMaterial","beampipeRadius", "beampipeThickness",
                               "e1", "e2"]
     _rbend_allowed_keys = ["angle"]
@@ -389,13 +392,17 @@ class Machine(object) :
         self.elements = {}
         self.prototypes = {}
         self.sequence = []
+
         self.lenint    = [] # array of length upto a sequence element
+        self.startface = [] # normal vector of face at start of element
+        self.endface = [] # normal vector of face at end of element
         self.midrotationint = [] # rotation compounded
         self.endrotationint = [] # rotation compounded
         self.midint = [] # mid point transformed
         self.endint = [] # end point tranformed
         self.midgeomint = [] # mid point along chord
         self.endgeomint = [] # end point along chord
+
         self.length = 0
         self.maxx = 0.0
         self.maxy = 0.0
@@ -445,11 +452,6 @@ class Machine(object) :
         self.verbose = True
 
         self.bakeTransforms = bakeTransforms
-
-        # world material
-        self._world_material = "AIR"
-        # sampler material
-        self._sampler_material = "VACUUM"
 
     def __iter__(self):
         self._iterindex = -1
@@ -540,27 +542,44 @@ class Machine(object) :
         pass
 
     def AddDrift(self,name, length, **kwargs):
-        self._CheckElementKwargs(kwargs, self._beampipe_allowed_keys + self._outer_allowed_keys)
+        allowed_keys = self._beampipe_allowed_keys + self._outer_allowed_keys
+        self._CheckElementKwargs(kwargs, allowed_keys)
+        self._SetDefaultElementKwargs(kwargs, allowed_keys)
         e = Element(name=name, category="drift", length=length, **kwargs)
         self.Append(e)
+        return e
 
     def AddRBend(self, name, length,  **kwargs):
-        self._CheckElementKwargs(kwargs,
-                                 self._beampipe_allowed_keys + \
-                                 self._outer_allowed_keys + \
-                                 self._rbend_allowed_keys + \
-                                 self._tiltshift_allowed_keys)
+        allowed_keys = self._beampipe_allowed_keys + \
+                       self._outer_allowed_keys + \
+                       self._rbend_allowed_keys + \
+                       self._tiltshift_allowed_keys
+        self._CheckElementKwargs(kwargs, allowed_keys)
+        self._SetDefaultElementKwargs(kwargs, allowed_keys)
+
+        kwargs['outerE1'] = -kwargs['e1']
+        kwargs['outerE2'] = -kwargs['e2']
+
         e = Element(name=name, category="rbend", length=length, **kwargs)
         self.Append(e)
+        return e
 
     def AddSBend(self, name, length, **kwargs):
-        self._CheckElementKwargs(kwargs,
-                                 self._beampipe_allowed_keys + \
-                                 self._outer_allowed_keys + \
-                                 self._sbend_allowed_keys + \
-                                 self._tiltshift_allowed_keys)
+        allowed_keys = self._beampipe_allowed_keys + \
+                       self._outer_allowed_keys + \
+                       self._sbend_allowed_keys + \
+                       self._tiltshift_allowed_keys
+
+        self._CheckElementKwargs(kwargs, allowed_keys)
+        self._SetDefaultElementKwargs(kwargs, allowed_keys)
+
+        # need to set the outer trap angles for Sbend
+        kwargs['outerE1'] = -kwargs['angle']/2 - kwargs['e1']
+        kwargs['outerE2'] = -kwargs['angle']/2 - kwargs['e2']
+
         e = Element(name=name, category="sbend", length = length, **kwargs)
         self.Append(e)
+        return e
 
     def AddSBendSplit(self, name, length, nsplit=10, **kwargs):
         angle = kwargs.pop('angle')/nsplit
@@ -571,96 +590,113 @@ class Machine(object) :
 
 
     def AddQuadrupole(self, name, length, **kwargs):
-        self._CheckElementKwargs(kwargs,
-                                 self._beampipe_allowed_keys + \
-                                 self._outer_allowed_keys + \
-                                 self._tiltshift_allowed_keys + \
-                                 self._quadrupole_allowed_keys)
+        allowed_keys = self._beampipe_allowed_keys + \
+                       self._outer_allowed_keys + \
+                       self._tiltshift_allowed_keys + \
+                       self._quadrupole_allowed_keys
 
+        self._CheckElementKwargs(kwargs, allowed_keys)
+        self._SetDefaultElementKwargs(kwargs, allowed_keys)
         e = Element(name=name, category="quadrupole", length = length, **kwargs)
         self.Append(e)
+        return e
 
 
     def AddTarget(self, name, length, **kwargs):
-        self._CheckElementKwargs(kwargs,
-                                 self._outer_allowed_keys + \
-                                 self._tiltshift_allowed_keys + \
-                                 self._target_allowed_keys)
+        allowed_keys = self._outer_allowed_keys + \
+                       self._tiltshift_allowed_keys + \
+                       self._target_allowed_keys
 
+        self._CheckElementKwargs(kwargs, allowed_keys)
+        self._SetDefaultElementKwargs(kwargs, allowed_keys)
         e = Element(name=name, category="target", length = length, **kwargs)
         self.Append(e)
+        return e
 
     def AddRCol(self, name, length, **kwargs):
-        self._CheckElementKwargs(kwargs,
-                                 self._outer_allowed_keys + \
-                                 self._tiltshift_allowed_keys + \
-                                 self._rcol_allowed_keys)
-
+        allowed_keys = self._outer_allowed_keys + \
+                       self._tiltshift_allowed_keys + \
+                       self._rcol_allowed_keys
+        self._CheckElementKwargs(kwargs, allowed_keys)
+        self._SetDefaultElementKwargs(kwargs, allowed_keys)
         e = Element(name=name, category="rcol", length = length, **kwargs)
         self.Append(e)
+        return e
 
     def AddECol(self, name, length, **kwargs):
-        self._CheckElementKwargs(kwargs,
-                                 self._outer_allowed_keys + \
-                                 self._tiltshift_allowed_keys + \
-                                 self._ecol_allowed_keys)
-
+        allowed_keys = self._outer_allowed_keys + \
+                       self._tiltshift_allowed_keys + \
+                       self._ecol_allowed_keys
+        self._CheckElementKwargs(kwargs, allowed_keys)
+        self._SetDefaultElementKwargs(kwargs, allowed_keys)
         e = Element(name=name, category="ecol", length = length, **kwargs)
         self.Append(e)
+        return e
 
     def AddJCol(self, name, length, **kwargs):
-        self._CheckElementKwargs(kwargs,
-                                 self._outer_allowed_keys + \
-                                 self._tiltshift_allowed_keys + \
-                                 self._jcol_allowed_keys)
-
+        allowed_keys = self._outer_allowed_keys + \
+                       self._tiltshift_allowed_keys + \
+                       self._jcol_allowed_keys
+        self._CheckElementKwargs(kwargs,allowed_keys)
+        self._SetDefaultElementKwargs(kwargs, allowed_keys)
         e = Element(name=name, category="jcol", length = length, **kwargs)
         self.Append(e)
-
+        return e
 
     def AddShield(self, name, length, **kwargs):
-        self._CheckElementKwargs(kwargs,
-                                 self._outer_allowed_keys + \
-                                 self._tiltshift_allowed_keys + \
-                                 self._beampipe_allowed_keys + \
-                                 self._shield_allowed_keys)
-
+        allowed_keys = self._outer_allowed_keys + \
+                       self._tiltshift_allowed_keys + \
+                       self._beampipe_allowed_keys + \
+                       self._shield_allowed_keys
+        self._CheckElementKwargs(kwargs, allowed_keys)
+        self._SetDefaultElementKwargs(kwargs, allowed_keys)
         e = Element(name=name, category="shield", length = length, **kwargs)
         self.Append(e)
+        return e
 
     def AddDump(self, name, length, **kwargs):
-        self._CheckElementKwargs(kwargs,
-                                 self._outer_allowed_keys + \
-                                 self._tiltshift_allowed_keys + \
-                                 self._target_allowed_keys)
+        allowed_keys = self._outer_allowed_keys + \
+                       self._tiltshift_allowed_keys + \
+                       self._target_allowed_keys
 
+        self._CheckElementKwargs(kwargs, allowed_keys)
+        self._SetDefaultElementKwargs(kwargs, allowed_keys)
         e = Element(name=name, category="dump", length = length, **kwargs)
         self.Append(e)
+        return e
 
     def AddWireScanner(self, name, length, **kwargs):
-        self._CheckElementKwargs(kwargs,
-                                 self._outer_allowed_keys + \
-                                 self._tiltshift_allowed_keys + \
-                                 self._beampipe_allowed_keys + \
-                                 self._wirescanner_allowed_keys)
+        allowed_keys = self._outer_allowed_keys + \
+                       self._tiltshift_allowed_keys + \
+                       self._beampipe_allowed_keys + \
+                       self._wirescanner_allowed_keys
 
+        self._CheckElementKwargs(kwargs,allowed_keys)
+        self._SetDefaultElementKwargs(kwargs, allowed_keys)
         e = Element(name=name, category="wirescanner", length = length, **kwargs)
         self.Append(e)
+        return e
 
     def AddGap(self, name, length, **kwargs):
+        allowed_keys = self._outer_allowed_keys
         self._CheckElementKwargs(kwargs,self._outer_allowed_keys)
-
+        self._SetDefaultElementKwargs(kwargs,allowed_keys)
         e = ElementGap(name, length)
         self.Append(e)
+        return e
 
     def AddCustomG4(self, name, length, **kwargs):
-        self._CheckElementKwargs(kwargs,self._customg4_allowed_keys)
-
+        allowed_keys = self._customg4_allowed_keys
+        self._CheckElementKwargs(kwargs,allowed_keys)
+        self._SetDefaultElementKwargs(kwargs, allowed_keys)
         e = ElementCustomG4(name, length, containerLV = kwargs['customLV'], convertMaterials=kwargs['convertMaterials'])
         self.Append(e)
+        return e
 
     def AddCustomG4File(self, name, length, **kwargs):
+        allowed_keys = self._customg4file_allowed_keys
         self._CheckElementKwargs(kwargs,self._customg4file_allowed_keys)
+        self._SetDefaultElementKwargs(kwargs, allowed_keys)
 
         geometry_file = kwargs['geometryFile']
         lv_name = kwargs['lvName']
@@ -675,17 +711,21 @@ class Machine(object) :
         self.AddCustomG4(name,length, customLV = lv, convertMaterials = True)
 
     def AddCustomFluka(self, name, length, **kwargs):
-        self._CheckElementKwargs(kwargs,self._customfluka_allowed_keys)
+        allowed_keys = self._customfluka_allowed_keys
+        self._CheckElementKwargs(kwargs,allowed_keys)
+        self._CheckElementKwargs(kwargs, allowed_keys)
 
         e = ElementCustomFluka(name, length,
                                customOuterBodies = kwargs['customOuterBodies'],
                                customRegions = kwargs['customRegions'],
                                flukaRegistry = kwargs['flukaRegistry'])
         self.Append(e)
+        return e
 
     def AddCustomFlukaFile(self, name, length, **kwargs):
+        allowed_keys = self._customflukafile_allowed_keys
         self._CheckElementKwargs(kwargs,self._customflukafile_allowed_keys)
-
+        self._SetDefaultElementKwargs(kwargs, allowed_keys)
 
         geometry_file = kwargs['geometryFile']
         outer_bodies = kwargs['customOuterBodies']
@@ -708,6 +748,7 @@ class Machine(object) :
                     length=self.prototypes[prototypeName].length,
                     prototypeName=prototypeName)
         self.Append(e)
+        return e
 
     def AddLatticePrototype(self, name, length, **kwargs):
         e = Element(name=name,
@@ -717,7 +758,7 @@ class Machine(object) :
         # save in prototype dict
         # transformation to be populated when built
         self.prototypes[name] = {"element":e, "rotation":None, "translation":None}
-
+        return e
 
     def AddScoringHistogram(self):
         pass
@@ -725,8 +766,15 @@ class Machine(object) :
     def AddScoringMesh(self):
         pass
 
-    def AddSamplerPlane(self, name, length, **kwargs):
+    def AddSamplerPlane(self, name, length = None, **kwargs):
+        allowed_keys = self._sampler_plane_allowed_keys
         self._CheckElementKwargs(kwargs, self._sampler_plane_allowed_keys)
+        self._SetDefaultElementKwargs(kwargs, allowed_keys)
+
+        # deftault sampler length
+        if not length:
+            length = self.options.samplerLength
+
         e = Element(name=name, category="sampler_plane", length = length, **kwargs)
         self.Append(e)
 
@@ -958,7 +1006,7 @@ class Machine(object) :
         zmax = max(abs(extent[0][2]), abs(extent[1][2]))*100 + 1000
 
         # make world region and surrounding black body
-        self.MakeFlukaInitialGeometry(worldsize=[xmax,ymax,zmax],worldmaterial=self.world_material)
+        self.MakeFlukaInitialGeometry(worldsize=[xmax,ymax,zmax],worldmaterial=self.options.worldMaterial)
         self.MakeGeant4InitialGeometry(worldsize=[2*xmax*10, 2*ymax*10, 2*zmax*10])
 
         # fix faces of elements
@@ -2204,19 +2252,18 @@ class Machine(object) :
                          material=None):
 
         if not material:
-            material = self.sampler_material
+            material = self.options.samplerMaterial
 
-        samplerLength = element.length*1000
         rotation, geomtranslation = self._MakeOffsetAndTiltTransforms(element, rotation, geomtranslation)
         samplerMaterialName = self._GetDictVariable(element,"samplerMaterial",material)
-        samplerDiameter = self._GetDictVariable(element,"samplerDiameter",2000)
+        samplerDiameter = self._GetDictVariable(element,"samplerDiameter",self.options.samplerDiameter)
         g4registry = self._GetRegistry(geant4RegistryAdd)
 
         # make fake geant4 materials for conversion
         samplerMaterial = _pyg4.geant4.MaterialSingleElement(name=samplerMaterialName, atomic_number=1, atomic_weight=1, density=1)
 
         # make box of correct size
-        samplersolid    = _pyg4.geant4.solid.Box(name+"_solid",samplerDiameter,samplerDiameter,samplerLength,g4registry)
+        samplersolid    = _pyg4.geant4.solid.Box(name+"_solid",samplerDiameter,samplerDiameter,self.options.samplerLength,g4registry)
         samplerlogical  = _pyg4.geant4.LogicalVolume(samplersolid,samplerMaterial,name+"_lv",g4registry)
         samplerphysical = _pyg4.geant4.PhysicalVolume([0,0,0],
                                                       [0,0,0],
@@ -2229,30 +2276,6 @@ class Machine(object) :
 
         return self._MakeFlukaComponentCommonG4(name,samplerlogical, samplerphysical, flukaConvert,
                                               rotation, translation, geomtranslation, "sampler")
-
-    @property
-    def world_material(self):
-        """Getter method"""
-        return self._world_material
-
-    @world_material.setter
-    def world_material(self, value):
-        """Setter method"""
-        if not value:
-            raise ValueError("Name cannot be empty")
-        self._world_material = value
-
-    @property
-    def sampler_material(self):
-        """Getter method"""
-        return self._sampler_material
-
-    @world_material.setter
-    def sampler_material(self, value):
-        """Setter method"""
-        if not value:
-            raise ValueError("Name cannot be empty")
-        self._sampler_material = value
 
     def View(self) :
         v = _pyg4.visualisation.VtkViewerNew()
@@ -2495,6 +2518,44 @@ class Machine(object) :
         for key in kwargs:
             if key not in allowed_keys:
                 raise TypeError(f"Unexpected keyword argument: {key}")
+
+    def _SetDefaultElementKwargs(self, kwargs, allowed_keys):
+        for ak in allowed_keys :
+            if ak not in kwargs :
+                if ak == "vacuumMaterial" :
+                    kwargs[ak] = self.options.vacuumMaterial
+                elif ak == "beampipeMaterial" :
+                    kwargs[ak] = self.options.beampipeMaterial
+                elif ak == "beampipeRadius" :
+                    kwargs[ak] = self.options.beampipeRadius
+                elif ak == "beampipeThickness" :
+                    kwargs[ak] = self.options.beampipeThickness
+                elif ak == "outerHorizontalSize" :
+                    kwargs[ak] = self.options.outerHorizontalSize
+                elif ak == "outerVerticalSize" :
+                    kwargs[ak] = self.options.outerVerticalSize
+                elif ak == "outerMaterial" :
+                    kwargs[ak] = self.options.outerMaterial
+                elif ak == "outerE1" :
+                    kwargs[ak] = 0.0
+                elif ak == "outerE2" :
+                    kwargs[ak] = 0.0
+                elif ak == "outerP1" :
+                    kwargs[ak] = 0.0
+                elif ak == "outerP2" :
+                    kwargs[ak] = 0.0
+                elif ak == "e1" :
+                    kwargs[ak] = 0.0
+                elif ak == "e2" :
+                    kwargs[ak] = 0.0
+                elif ak == "offsetX" :
+                    kwargs[ak] = 0.0
+                elif ak == "offsetY" :
+                    kwargs[ak] = 0.0
+                elif ak  == "tilt" :
+                    kwargs[ak] = 0.0
+                else :
+                    print("Need to set: ",ak)
 
     def ViewGeant4(self, separateMeshes = False):
         if not separateMeshes :

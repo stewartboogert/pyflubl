@@ -6,10 +6,13 @@ except ImportError:
     __version_tuple__ = (0, 0, "unknown version")
 
 from .Options import Options
+from . import Coordinates
+from . import Element
+from . import Line
+from . import BuilderNew
 from . import Builder
-from . import Convert
 from . import Fluka
 from . import Analysis
-
-# from .FlukaMachine import FlukaMachine
+from . import GeometryGeant4
+# from . import Convert
 
