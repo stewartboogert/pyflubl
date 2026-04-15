@@ -1,6 +1,7 @@
 from ._beam import *
 from ._defaults import *
 from ._global import *
+from ._lattice import *
 from ._mgn import *
 from ._randomiz import *
 from ._rotprbin import *

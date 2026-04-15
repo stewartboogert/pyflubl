@@ -80,19 +80,15 @@ def _RotateFromXTrapToZTrap(pnts) :
     return (rot_x @ rot_z @ pnts.T).T
 
 def _CalculateElementTransformation(e):
-    if e.category == "drift" or  \
-            e.category == "quadrupole" or \
-            e.category == "target" or \
-            e.category == "rcol" or \
-            e.category == "ecol" or \
-            e.category == "jcol" or \
-            e.category == "shield" or \
-            e.category == "dump" or \
-            e.category == "wirescanner" or \
-            e.category == "gap" or \
-            e.category == "customG4" or \
-            e.category == "customFluka" or \
-            e.category == "sampler_plane":
+
+    # if an instance of a lattice prototype. Replace element
+    # with that looked up from Builder.prototypes
+    if e.category == "lattice_instance" :
+        e = e['prototype']
+
+    if e.category in ["drift", "quadrupole", "target", "rcol", "ecol", "jcol",
+                      "shield", "dump", "wirescanner", "gap", "customG4", "customFluka",
+                      "sampler_plane"] :
 
         l = e.length
         c = l
@@ -536,20 +532,32 @@ class Coordinates(object) :
         vmin = [9e99, 9e99, 9e99]
         vmax = [-9e99, -9e99, -9e99]
 
-        for p in self.cho_end :
-            if p[0] < vmin[0] :
-                vmin[0] = p[0]
-            if p[1] < vmin[1] :
-                vmin[1] = p[1]
-            if p[2] < vmin[2] :
-                vmin[2] = p[2]
+        for p_start, p_end in zip(self.cho_sta,self.cho_end) :
 
-            if p[0] > vmax[0]:
-                vmax[0] = p[0]
-            if p[1] > vmax[1] :
-                vmax[1] = p[1]
-            if p[2] > vmax[2] :
-                vmax[2] = p[2]
+            xmin = min(p_start[0], p_end[0])
+            ymin = min(p_start[1], p_end[1])
+            zmin = min(p_start[2], p_end[2])
+
+            xmax = max(p_start[0], p_end[0])
+            ymax = max(p_start[1], p_end[1])
+            zmax = max(p_start[2], p_end[2])
+
+            if xmin < vmin[0] :
+                vmin[0] = xmin
+            if ymin < vmin[1] :
+                vmin[1] = ymin
+            if zmin < vmin[2] :
+                vmin[2] = zmin
+
+            if xmax > vmax[0]:
+                vmax[0] = xmax
+            if ymax > vmax[1] :
+                vmax[1] = ymax
+            if zmax > vmax[2] :
+                vmax[2] = zmax
+
+        vmin = [x-2 for x in vmin]
+        vmax = [x+2 for x in vmax]
 
         return [vmin,vmax]
 
