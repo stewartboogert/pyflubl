@@ -18,7 +18,7 @@ extern "C" {
 
 /* Region number to region name loopup */
 std::string regionname_lookup(int reg_number) {
-    return (*bookkeeping)[std::to_string(reg_number)];
+    return (*bookkeeping)['regionnumber_regionname'][std::to_string(reg_number)];
 }
 
 /* Region number to element lookup */
