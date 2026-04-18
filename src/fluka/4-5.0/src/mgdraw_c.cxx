@@ -46,7 +46,7 @@ int sampler_lookup(int reg_number) {
     if(region_name == "BLKHOLE" ||
        region_name == "PARKING" ||
        region_name == "WORLD") {
-           return std::string("");
+           return -1;
        }
 
     auto element_name = std::string((*bookkeeping)["regionnumber_element"][std::to_string(reg_number)]);
