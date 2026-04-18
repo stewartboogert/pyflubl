@@ -16,23 +16,38 @@ extern "C" {
                           double *E);
 }
 
+/* Region number to region name loopup */
+std::string regionname_lookup(int reg_number) {
+    return (*bookkeeping)[std::to_string(reg_number)];
+}
+
+/* Region number to element lookup */
 std::string element_loopup(int reg_number) {
 
-    // black hole and air
-    if(reg_number <= 2 ) { // TODO can this change?
-        return std::string("");
-    }
+    // look up region name
+    auto region_name = regionname_lookup(reg_number);
+
+    if(region_name == "BLKHOLE" ||
+       region_name == "PARKING" ||
+       region_name == "WORLD") {
+           return std::string("");
+       }
 
     auto element_name = std::string((*bookkeeping)["regionnumber_element"][std::to_string(reg_number)]);
     return element_name;
 }
 
+/* Region number to sampler lookup */
 int sampler_lookup(int reg_number) {
 
-    // black hole and air
-    if(reg_number <= 2 ) {
-        return -1;
-    }
+    // look up region name
+    auto region_name = regionname_lookup(reg_number);
+
+    if(region_name == "BLKHOLE" ||
+       region_name == "PARKING" ||
+       region_name == "WORLD") {
+           return std::string("");
+       }
 
     auto element_name = std::string((*bookkeeping)["regionnumber_element"][std::to_string(reg_number)]);
     auto category = std::string((*bookkeeping)["elements"][element_name]["category"]);
@@ -44,6 +59,7 @@ int sampler_lookup(int reg_number) {
     return -1;
 }
 
+/* Region number to local coordinate look up (unused right now TODO)*/
 void localcoord_lookup(int reg_number, double *global, double *local) {
     auto element_name = element_loopup(reg_number);
 }
