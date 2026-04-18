@@ -2018,6 +2018,10 @@ class Machine(_Coordinates) :
                                 flukaConvert,
                                 True)
 
+            # need to set dummy S and real length
+            self.elementBookkeeping[element['prototype'].name]['S'] = -1.0
+            self.elementBookkeeping[element['prototype'].name]['length'] = element['prototype'].length
+
         # create same body in accelerator
         prototype_bki = self.elementBookkeeping[element['prototype'].name]
         instance_bki = self.elementBookkeeping[element.name]
