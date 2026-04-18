@@ -18,8 +18,9 @@ extern "C" {
 
 /* Region number to region name loopup */
 std::string regionname_lookup(int reg_number) {
+    std::cout << "regionname_lookup> " << reg_number << std::endl;
     auto regionname = (*bookkeeping)['regionnumber_regionname'][std::to_string(reg_number)];
-    std::cout << "regionname_lookup> " << reg_number << regionname << std::endl;
+    std::cout << "regionname_lookup> " << reg_number << " " << regionname << std::endl;
     return regionname;
 }
 
