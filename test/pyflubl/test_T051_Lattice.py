@@ -178,8 +178,14 @@ def make_T051_Lattice_SBend() :
                      angle=_np.pi*5/180.0,
                      add=False)
 
+    sb2 = m.AddSBend(name="sb2",
+                     length=0.25,
+                     angle=-_np.pi*5/180.0,
+                     add=False)
+
     m.AddLatticePrototype(d1)
     m.AddLatticePrototype(sb1)
+    m.AddLatticePrototype(sb2)
 
     m.AddLatticeInstance("d1i1","d1")
     m.AddLatticeInstance("sb1i1","sb1")
@@ -195,6 +201,23 @@ def make_T051_Lattice_SBend() :
 
     m.AddLatticeInstance("d1i5","d1")
     m.AddLatticeInstance("sb1i5","sb1")
+
+    m.AddLatticeInstance("d1i6","d1")
+    m.AddLatticeInstance("sb2i1","sb2")
+
+    m.AddLatticeInstance("d1i7","d1")
+    m.AddLatticeInstance("sb2i2","sb2")
+
+    m.AddLatticeInstance("d1i8","d1")
+    m.AddLatticeInstance("sb2i3","sb2")
+
+    m.AddLatticeInstance("d1i9","d1")
+    m.AddLatticeInstance("sb2i4","sb2")
+
+    m.AddLatticeInstance("d1i10","d1")
+    m.AddLatticeInstance("sb2i5","sb2")
+
+    m.AddSamplerPlane(name="s1", length=1e-4)
 
     m.Write(this_dir+"/T051_Lattice_SBend")
 
