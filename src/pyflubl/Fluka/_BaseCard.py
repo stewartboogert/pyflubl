@@ -9,6 +9,7 @@ class BaseCard:
                           "")
         self.cardCont1 = None
         self.cardCont2 = None
+        self.cardCont3 = None
 
     def AddRegistry(self, flukaregistry):
         if self.card :
@@ -17,6 +18,8 @@ class BaseCard:
             flukaregistry.addCard(self.cardCont1)
         if self.cardCont2 :
             flukaregistry.addCard(self.cardCont2)
+        if self.cardCont3 :
+            flukaregistry.addCard(self.cardCont3)
 
     def __repr__(self):
         retString = ""
@@ -28,5 +31,8 @@ class BaseCard:
         if self.cardCont2 :
             retString += "\n"
             retString += self.cardCont2.toFreeString()
+        if self.cardCont3 :
+            retString += "\n"
+            retString += self.cardCont3.toFreeString()
 
         return retString

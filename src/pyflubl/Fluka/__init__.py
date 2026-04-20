@@ -3,6 +3,7 @@ from ._defaults import *
 from ._global import *
 from ._lattice import *
 from ._mgn import *
+from ._plotgeom import *
 from ._randomiz import *
 from ._rotprbin import *
 from ._source import *

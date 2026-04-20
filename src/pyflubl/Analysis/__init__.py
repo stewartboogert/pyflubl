@@ -1,6 +1,7 @@
 from ._fortran import *
 from ._FlukaDataFile import *
 from ._PyflublDataFile import *
+from ._plotgeom import *
 from ._usrbdx import *
 from ._usrbin import *
 from ._usrdump import *
