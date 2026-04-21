@@ -21,7 +21,7 @@ def make_T051_Lattice_Drift() :
     r = _pfbl.Fluka.Randomiz()
     m.AddRandomiz(r)
 
-    s = _pfbl.Fluka.Start(1000)
+    s = _pfbl.Fluka.Start(10)
     m.AddStart(s)
 
     uic = _pfbl.Fluka.Usricall()
@@ -94,7 +94,7 @@ def make_T051_Lattice_RBend() :
     r = _pfbl.Fluka.Randomiz()
     m.AddRandomiz(r)
 
-    s = _pfbl.Fluka.Start(1000)
+    s = _pfbl.Fluka.Start(10)
     m.AddStart(s)
 
     uic = _pfbl.Fluka.Usricall()
@@ -152,7 +152,7 @@ def make_T051_Lattice_SBend() :
     r = _pfbl.Fluka.Randomiz()
     m.AddRandomiz(r)
 
-    s = _pfbl.Fluka.Start(1000)
+    s = _pfbl.Fluka.Start(10)
     m.AddStart(s)
 
     uic = _pfbl.Fluka.Usricall()
@@ -245,7 +245,7 @@ def make_T051_Lattice_SBend_simple() :
     r = _pfbl.Fluka.Randomiz()
     m.AddRandomiz(r)
 
-    s = _pfbl.Fluka.Start(1000)
+    s = _pfbl.Fluka.Start(10)
     m.AddStart(s)
 
     uic = _pfbl.Fluka.Usricall()
