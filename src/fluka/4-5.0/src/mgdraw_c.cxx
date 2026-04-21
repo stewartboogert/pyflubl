@@ -16,7 +16,7 @@ extern "C" {
                           double *E);
 }
 
-/* Region number to region name loopup */
+/* Region number to region name lookup */
 std::string regionname_lookup(int reg_number) {
 #ifdef DEBUG
     std::cout << "regionname_lookup> " << reg_number << std::endl;
@@ -31,7 +31,7 @@ std::string regionname_lookup(int reg_number) {
 }
 
 /* Region number to element lookup */
-std::string element_loopup(int reg_number) {
+std::string element_lookup(int reg_number) {
 
     // look up region name
     auto region_name = regionname_lookup(reg_number);
@@ -70,7 +70,7 @@ int sampler_lookup(int reg_number) {
 
 /* Region number to local coordinate look up (unused right now TODO)*/
 void localcoord_lookup(int reg_number, double *global, double *local) {
-    auto element_name = element_loopup(reg_number);
+    auto element_name = element_lookup(reg_number);
 }
 
 void mgdraw_bxdraw_c_(int *mreg, int *newreg,
@@ -90,7 +90,7 @@ void mgdraw_bxdraw_c_(int *mreg, int *newreg,
     double xdc, ydc, zdc;
     double xp, yp, zp;
 
-    auto element_name = element_loopup(*newreg);
+    auto element_name = element_lookup(*newreg);
 
     (*elementMap)[element_name].transform(*X, *Y, *Z, x, y, z);
     (*elementMap)[element_name].transformDirection(*Xdc, *Ydc, *Zdc, xdc, ydc, zdc);
@@ -111,7 +111,7 @@ void mgdraw_endraw_c_(int *mreg, double *X, double *Y, double *Z, double *E) {
               << *E << std::endl;
 #endif
 
-    auto element_name = element_loopup(*mreg);
+    auto element_name = element_lookup(*mreg);
 
     if(element_name != "") {
         eloss->Fill(*E, (*elementMap)[element_name].transformS(*X, *Y, *Z));
