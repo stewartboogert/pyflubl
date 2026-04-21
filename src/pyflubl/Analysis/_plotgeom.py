@@ -32,3 +32,8 @@ class PlotgeomDataFile :
 
             def readFormattedWorms() :
                 pass
+
+    def _readUnformatterd(self, filename):
+        # Not yet implemented
+        print("Reading unformatted file", filename)
+        print("Not yet implemented")
