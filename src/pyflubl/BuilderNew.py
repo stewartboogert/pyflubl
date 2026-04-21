@@ -2186,7 +2186,6 @@ class Machine(_Coordinates) :
         trans_to_instance    = instance_bki['geomtranslation']
         rotation_to_instance = instance_bki['rotation'] # assumes prototypes in parking space is without rotation
 
-        translation = -_np.array(trans_to_instance) + _np.array(trans_to_prototype)
         rotation    = _matrix2tbxyz(_np.linalg.inv(_np.array(rotation_to_instance)))
 
         rdi = _rotoTranslationFromTra2("TL"+format(self.flukalatcount, "03"),[[0,0,0], -_np.array(trans_to_instance)])
