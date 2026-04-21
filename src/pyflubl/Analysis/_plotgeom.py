@@ -4,7 +4,7 @@ class PlotgeomDataFile :
         if type == "FORMATTED":
             self._readFormatted(filename)
         elif type == "UNFORMATTED":
-            self._readUnformatterd(filename)
+            self._readUnformatted(filename)
 
     def _readFormatted(self, filename):
         with open(filename, "rb") as f:
@@ -33,7 +33,9 @@ class PlotgeomDataFile :
             def readFormattedWorms() :
                 pass
 
-    def _readUnformatterd(self, filename):
+    def _readUnformatted(self, filename):
         # Not yet implemented
         print("Reading unformatted file", filename)
         print("Not yet implemented")
+
+        raise NotImplementedError
