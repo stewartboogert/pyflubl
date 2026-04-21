@@ -120,11 +120,46 @@ def make_T051_Lattice_RBend() :
                      angle=_np.pi*5/180.0,
                      add=False)
 
+    rb2 = m.AddRBend(name="rb2",
+                     length=0.25,
+                     angle=-_np.pi*5/180.0,
+                     add=False)
+
     m.AddLatticePrototype(d1)
     m.AddLatticePrototype(rb1)
+    m.AddLatticePrototype(rb2)
 
     m.AddLatticeInstance("d1i1","d1")
     m.AddLatticeInstance("rb1i1","rb1")
+
+    m.AddLatticeInstance("d1i2","d1")
+    m.AddLatticeInstance("rb1i2","rb1")
+
+    m.AddLatticeInstance("d1i3","d1")
+    m.AddLatticeInstance("rb1i3","rb1")
+
+    m.AddLatticeInstance("d1i4","d1")
+    m.AddLatticeInstance("rb1i4","rb1")
+
+    m.AddLatticeInstance("d1i5","d1")
+    m.AddLatticeInstance("rb1i5","rb1")
+
+    m.AddLatticeInstance("d1i6","d1")
+    m.AddLatticeInstance("rb2i1","rb2")
+
+    m.AddLatticeInstance("d1i7","d1")
+    m.AddLatticeInstance("rb2i2","rb2")
+
+    m.AddLatticeInstance("d1i8","d1")
+    m.AddLatticeInstance("rb2i3","rb2")
+
+    m.AddLatticeInstance("d1i9","d1")
+    m.AddLatticeInstance("rb2i4","rb2")
+
+    m.AddLatticeInstance("d1i10","d1")
+    m.AddLatticeInstance("rb2i5","rb2")
+
+
 
     m.Write(this_dir+"/T051_Lattice_RBend")
 
@@ -294,5 +329,84 @@ def make_T051_Lattice_SBend_simple() :
 
     return m
 
-def test_T051_Lattice_SBend() :
+def test_T051_Lattice_SBend_simple() :
     make_T051_Lattice_SBend_simple()
+
+def make_T051_Lattice_Quadrupole():
+    this_dir = _os.path.dirname(_os.path.abspath(__file__))
+
+    m = _pfbl.BuilderNew.Machine(bakeTransforms=True)
+
+    d = _pfbl.Fluka.Defaults('EM-CASCA')
+    m.AddDefaults(d)
+
+    b = _pfbl.Fluka.Beam(momentumOrKe=1, energySpread=0.0, sdum="ELECTRON")
+    bp = _pfbl.Fluka.Beampos(xCentre=0, yCentre=0, zCentre=0, xCosine=0, yCosine=0)
+    ba = _pfbl.Fluka.BeamAxes(xxCosine=1, xyCosine=0, xzCosine=0,
+                              zxCosine=0, zyCosine=0, zzCosine=1)
+    m.AddBeam(b)
+    m.AddBeampos(bp)
+    m.AddBeamaxes(ba)
+
+    r = _pfbl.Fluka.Randomiz()
+    m.AddRandomiz(r)
+
+    s = _pfbl.Fluka.Start(10)
+    m.AddStart(s)
+
+    uic = _pfbl.Fluka.Usricall()
+    m.AddUsricall(uic)
+
+    uoc = _pfbl.Fluka.Usrocall()
+    m.AddUsrocall(uoc)
+
+    ud = _pfbl.Fluka.Userdump(mgdraw=100,lun=23,mgdrawOption=-1,userDump=None, outputFile="dump")
+    m.AddUserdump(ud)
+
+    # set world material
+    m.world_material = "VACUUM"
+
+    d1 = m.AddDrift(name="d1",
+                    length=0.25,
+                    beampipeMaterial = "IRON",
+                    outerMaterial = "AIR",
+                    add=False)
+
+    q1 = m.AddQuadrupole(name="q1",
+                         length=0.25,
+                         k1=0.5,
+                         add=False)
+
+    q2 = m.AddQuadrupole(name="q2",
+                         length=0.25,
+                         k1=-0.5,
+                         add=False)
+
+    m.AddLatticePrototype(d1)
+    m.AddLatticePrototype(q1)
+    m.AddLatticePrototype(q2)
+
+    m.AddLatticeInstance("d1i1","d1")
+
+    m.AddLatticeInstance("q1i1","q1")
+
+    m.AddLatticeInstance("d1i2","d1")
+    m.AddLatticeInstance("d1i3","d1")
+
+    m.AddLatticeInstance("q2i1","q2")
+
+    m.AddLatticeInstance("d1i4","d1")
+    m.AddLatticeInstance("d1i5","d1")
+
+    m.AddLatticeInstance("q1i2","q1")
+
+    m.AddLatticeInstance("d1i6","d1")
+    m.AddLatticeInstance("d1i7","d1")
+
+    m.AddLatticeInstance("q2i2","q2")
+
+    m.Write(this_dir+"/T051_Lattice_Quad")
+
+    return m
+def test_T051_Lattice_Quadrupole() :
+    make_T051_Lattice_Quadrupole()
