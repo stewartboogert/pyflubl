@@ -2011,7 +2011,7 @@ class Machine(_Coordinates) :
             self.elementBookkeeping[element['prototype'].name] = {}
 
             # advance prototype position based on length
-            self.prototype_position[2] += element['prototype'].length*100*3
+            self.prototype_position[2] += element['prototype'].length*100*1.5
 
             self.ElementFactory(element['prototype'],
                                 _np.eye(3),
