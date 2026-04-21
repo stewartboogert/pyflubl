@@ -23,9 +23,6 @@ from .GeometryGeant4 import MakeWireScanner as _MakeWireScanner
 
 import pyg4ometry as _pyg4
 from pyg4ometry.fluka.directive import rotoTranslationFromTra2 as _rotoTranslationFromTra2
-from pyg4ometry.fluka.directive import RotoTranslation as _RotoTranslation
-from pyg4ometry.fluka.directive import RecursiveRotoTranslation as _RecursiveRotoTranslation
-from pyg4ometry.fluka.directive import rotoTranslationFromTBxyz as _rotoTranslationFromTBxyz
 from pyg4ometry.convert.geant42Fluka import geant4PhysicalVolume2Fluka as _geant4PhysicalVolume2Fluka
 from pyg4ometry.transformation import matrix2tbxyz as _matrix2tbxyz
 from pyg4ometry.transformation import tbxyz2matrix as _tbxyz2matrix
