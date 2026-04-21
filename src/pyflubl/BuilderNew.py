@@ -1172,30 +1172,34 @@ class Machine(_Coordinates) :
         vacuum_index = bki['physicalVolumes'].index(vacPhysical.name)
         vacuum_region = bki['flukaRegions'][vacuum_index]
 
-        # add transformation to registry
-        if len(rdi) > 0 :
-            self.flukaregistry.addRotoTranslation(rdi)
+        if not prototype :
+            # add transformation to registry
+            if len(rdi) > 0 :
+                self.flukaregistry.addRotoTranslation(rdi)
 
-        # make and assign field to region(s)
-        mgnname = "MG"+format(self.flukamgncount, "03")
-        mgnfield = _Mgnfield(strength=-b_field,rotDefini=rdi.name, applyRegion=0,
-                             regionFrom=vacuum_region, regionTo=None, regionStep=None,
-                             sdum = mgnname)
-        self.AddMgnfield(mgnfield)
+            # make and assign field to region(s)
+            mgnname = "MG"+format(self.flukamgncount, "03")
+            mgnfield = _Mgnfield(strength=-b_field,rotDefini=rdi.name, applyRegion=0,
+                                 regionFrom=vacuum_region, regionTo=None, regionStep=None,
+                                 sdum = mgnname)
+            self.AddMgnfield(mgnfield)
 
-        mgncreat = _Mgncreat(fieldType=_Mgncreat.DIPOLE, applicableRadius=0, xOffset=0, yOffset=0, mirrorSymmetry=0, sdum=mgnname)
-        self.AddMgncreat(mgncreat)
+            mgncreat = _Mgncreat(fieldType=_Mgncreat.DIPOLE, applicableRadius=0, xOffset=0, yOffset=0, mirrorSymmetry=0, sdum=mgnname)
+            self.AddMgncreat(mgncreat)
 
-        # add stepsize
-        stepsize = _Stepsize(minStepSize=-0.1/1e3, maxStepSize=1.0,
-                             regionFrom=vacuum_region, regionTo=None, regionStep=None)
-        self.AddStepsize(stepsize)
+            # add stepsize
+            stepsize = _Stepsize(minStepSize=-0.1/1e3, maxStepSize=1.0,
+                                 regionFrom=vacuum_region, regionTo=None, regionStep=None)
+            self.AddStepsize(stepsize)
 
-        # add magnetic field to assimat
-        self.flukaregistry.assignmaAddMagnetic(vacuum_region, mgnname)
+            # increment mgn count
+            self.flukamgncount += 1
 
-        # increment mgn count
-        self.flukamgncount += 1
+            # add magnetic field to assimat
+            self.flukaregistry.assignmaAddMagnetic(vacuum_region, mgnname)
+        else :
+            # add magnetic field to assimat
+            self.flukaregistry.assignmaAddMagnetic(vacuum_region, "dummy")
 
         return ret_dict
 
@@ -1257,6 +1261,7 @@ class Machine(_Coordinates) :
 
         ret_dict = self._MakeFlukaComponentCommonG4(name,outerLogical, outerPhysical, flukaConvert,
                                                     rotation, translation, geomtranslation, "sbend", False, prototype)
+
         # calculate field strength
         rho = length/angle
 
@@ -1275,33 +1280,37 @@ class Machine(_Coordinates) :
         vacuum_index = bki['physicalVolumes'].index(vacPhysical.name)
         vacuum_region = bki['flukaRegions'][vacuum_index]
 
-        # add transformation to registry
-        if len(rdi) > 0 :
-            self._GetFlukaRegistry(flukaRegistryAdd=True).addRotoTranslation(rdi)
+        if not prototype :
+            # add transformation to registry
+            if len(rdi) > 0 :
+                self._GetFlukaRegistry(flukaRegistryAdd=True).addRotoTranslation(rdi)
 
-        # make and assign field to region(s)
-        mgnname = "MG"+format(self.flukamgncount, "03")
-        mgnfield = _Mgnfield(strength=-b_field,rotDefini=rdi.name, applyRegion=0,
-                             regionFrom=vacuum_region, regionTo=None, regionStep=None,
-                             sdum = mgnname)
-        self.AddMgnfield(mgnfield)
+            # make and assign field to region(s)
+            mgnname = "MG"+format(self.flukamgncount, "03")
+            mgnfield = _Mgnfield(strength=-b_field,rotDefini=rdi.name, applyRegion=0,
+                                 regionFrom=vacuum_region, regionTo=None, regionStep=None,
+                                 sdum = mgnname)
+            self.AddMgnfield(mgnfield)
 
-        mgncreat = _Mgncreat(fieldType=_Mgncreat.DIPOLE, applicableRadius=0, xOffset=0, yOffset=0, mirrorSymmetry=0, sdum=mgnname)
-        self.AddMgncreat(mgncreat)
+            mgncreat = _Mgncreat(fieldType=_Mgncreat.DIPOLE, applicableRadius=0, xOffset=0, yOffset=0, mirrorSymmetry=0, sdum=mgnname)
+            self.AddMgncreat(mgncreat)
 
-        # add stepsize
-        stepsize = _Stepsize(minStepSize=-0.1/1e3, maxStepSize=0.1,
-                             regionFrom=vacuum_region, regionTo=None, regionStep=None)
-        self.AddStepsize(stepsize)
+            # add stepsize
+            stepsize = _Stepsize(minStepSize=-0.1/1e3, maxStepSize=0.1,
+                                 regionFrom=vacuum_region, regionTo=None, regionStep=None)
+            self.AddStepsize(stepsize)
 
-        # add magnetic field to assimat
-        self.flukaregistry.assignmaAddMagnetic(vacuum_region, mgnname)
+            # increment mgn count
+            self.flukamgncount += 1
 
-        # increment mgn count
-        self.flukamgncount += 1
+            # add magnetic field to assimat
+            self.flukaregistry.assignmaAddMagnetic(vacuum_region, mgnname)
+        else :
+            # add magnetic field to assimat
+            self.flukaregistry.assignmaAddMagnetic(vacuum_region, "dummy")
+
 
         return ret_dict
-
 
     def MakeFlukaQuadrupole(self,
                             name,
@@ -1376,33 +1385,36 @@ class Machine(_Coordinates) :
         vacuum_index = bki['physicalVolumes'].index(vacPhysical.name)
         vacuum_region = bki['flukaRegions'][vacuum_index]
 
-        # add transformation to registry
-        if len(rdi) > 0 :
-            self._GetFlukaRegistry(flukaRegistryAdd=True).addRotoTranslation(rdi)
+        if not prototype:
+            # add transformation to registry
+            if len(rdi) > 0 :
+                self._GetFlukaRegistry(flukaRegistryAdd=True).addRotoTranslation(rdi)
 
-        # make and assign field to region(s)
-        mgnname = "MG"+format(self.flukamgncount, "03")
-        mgnfield = _Mgnfield(strength=-k1_fluka,rotDefini=rdi.name, applyRegion=0,
-                             regionFrom=vacuum_region, regionTo=None, regionStep=None,
-                             sdum = mgnname)
-        self.AddMgnfield(mgnfield)
+            # make and assign field to region(s)
+            mgnname = "MG"+format(self.flukamgncount, "03")
+            mgnfield = _Mgnfield(strength=-k1_fluka,rotDefini=rdi.name, applyRegion=0,
+                                 regionFrom=vacuum_region, regionTo=None, regionStep=None,
+                                 sdum = mgnname)
+            self.AddMgnfield(mgnfield)
 
-        mgncreat = _Mgncreat(fieldType=_Mgncreat.QUADRUPOLE, applicableRadius=0, xOffset=0, yOffset=0, mirrorSymmetry=0, sdum=mgnname)
-        self.AddMgncreat(mgncreat)
+            mgncreat = _Mgncreat(fieldType=_Mgncreat.QUADRUPOLE, applicableRadius=0, xOffset=0, yOffset=0, mirrorSymmetry=0, sdum=mgnname)
+            self.AddMgncreat(mgncreat)
 
-        # add stepsize
-        stepsize = _Stepsize(minStepSize=-0.1/1e3, maxStepSize=0.1, # TODO needs to be user adjustable
-                             regionFrom=vacuum_region, regionTo=None, regionStep=None)
-        self.AddStepsize(stepsize)
+            # add stepsize
+            stepsize = _Stepsize(minStepSize=-0.1/1e3, maxStepSize=0.1, # TODO needs to be user adjustable
+                                 regionFrom=vacuum_region, regionTo=None, regionStep=None)
+            self.AddStepsize(stepsize)
 
-        # add magnetic field to assimat
-        self.flukaregistry.assignmaAddMagnetic(vacuum_region, mgnname)
+            # increment mgn count
+            self.flukamgncount += 1
 
-        # increment mgn count
-        self.flukamgncount += 1
+            # add magnetic field to assimat
+            self.flukaregistry.assignmaAddMagnetic(vacuum_region, mgnname)
+        else :
+            # add magnetic field to assimat
+            self.flukaregistry.assignmaAddMagnetic(vacuum_region, "dummy")
 
         return ret_dict
-
 
     def MakeFlukaTarget(self,
                         name,
@@ -2054,8 +2066,114 @@ class Machine(_Coordinates) :
             for daughterzones in flukaouterregion.zones:
                 self.worldzone.addSubtraction(daughterzones)
 
-            # remove material assignment
-            del self.flukaregistry.assignmas[flukaouterregion.name]
+            # make the assignma material vacuum
+            self.flukaregistry.assignmaAddMaterial(flukaouterregion.name, "VACUUM")
+
+            # create instance magnetic fields
+            if element['prototype'].category == "sbend" :
+
+                length = element['prototype'].length * 1000
+                angle = element['prototype']["angle"]
+
+                # calculate radius of curvature
+                rho = length / angle
+
+                # calculate field strength
+                b_field = self._CalculateDipoleFieldStrength(self.beam.momentum, rho)
+
+                # bookkeeping info for element
+                bki = self.elementBookkeeping[element.name]
+
+                # make field transform
+                translation = bki['translation']
+                rotation = _matrix2tbxyz(_np.linalg.inv(_np.array(bki['rotation'])))
+                rdi = _rotoTranslationFromTra2("TM" + format(self.flukamgncount, "03"), [rotation, translation])
+
+                if len(rdi) > 0:
+                    self._GetFlukaRegistry(flukaRegistryAdd=True).addRotoTranslation(rdi)
+
+                # make and assign field to region(s)
+                mgnname = "MG" + format(self.flukamgncount, "03")
+                mgnfield = _Mgnfield(strength=-b_field, rotDefini=rdi.name, applyRegion=0,
+                                     regionFrom=flukaouterregion.name, regionTo=None, regionStep=None,
+                                     sdum=mgnname)
+                self.AddMgnfield(mgnfield)
+
+                mgncreat = _Mgncreat(fieldType=_Mgncreat.DIPOLE, applicableRadius=0, xOffset=0, yOffset=0,
+                                     mirrorSymmetry=0, sdum=mgnname)
+                self.AddMgncreat(mgncreat)
+
+                # increment mgn count
+                self.flukamgncount += 1
+
+            elif element['prototype'].category == "rbend" :
+
+                length = element['prototype'].length * 1000
+                angle = element['prototype']["angle"]
+
+                # calculate radius of curvature
+                rho = length / (2 * _np.sin(angle / 2.))
+
+                # calculate field strength
+                b_field = self._CalculateDipoleFieldStrength(self.beam.momentum, rho)
+
+                # bookkeeping info for element
+                bki = self.elementBookkeeping[element.name]
+
+                # make field transform
+                translation = bki['translation']
+                rotation = _matrix2tbxyz(_np.linalg.inv(_np.array(bki['rotation'])))
+                rdi = _rotoTranslationFromTra2("TM" + format(self.flukamgncount, "03"), [rotation, translation])
+
+                if len(rdi) > 0:
+                    self._GetFlukaRegistry(flukaRegistryAdd=True).addRotoTranslation(rdi)
+
+                # make and assign field to region(s)
+                mgnname = "MG" + format(self.flukamgncount, "03")
+                mgnfield = _Mgnfield(strength=-b_field, rotDefini=rdi.name, applyRegion=0,
+                                     regionFrom=flukaouterregion.name, regionTo=None, regionStep=None,
+                                     sdum=mgnname)
+                self.AddMgnfield(mgnfield)
+
+                mgncreat = _Mgncreat(fieldType=_Mgncreat.DIPOLE, applicableRadius=0, xOffset=0, yOffset=0,
+                                     mirrorSymmetry=0, sdum=mgnname)
+                self.AddMgncreat(mgncreat)
+
+                # increment mgn count
+                self.flukamgncount += 1
+
+            elif element['prototype'].category == "quadrupole":
+
+                # calculate field strength
+                q_over_p = self.beam.charge / self.beam.momentum
+
+                # calculate fluka K
+                k1_fluka = element['prototype']['k1'] / q_over_p
+
+                # bookkeeping info for element
+                bki = self.elementBookkeeping[element.name]
+
+                # make field transform
+                translation = -_np.array(bki['translation'])
+                rotation = _matrix2tbxyz(_np.linalg.inv(_np.array(bki['rotation'])))
+                rdi = _rotoTranslationFromTra2("TM" + format(self.flukamgncount, "03"), [rotation, translation])
+
+                # add transformation to registry
+                if len(rdi) > 0 :
+                    self._GetFlukaRegistry(flukaRegistryAdd=True).addRotoTranslation(rdi)
+
+                # make and assign field to region(s)
+                mgnname = "MG"+format(self.flukamgncount, "03")
+                mgnfield = _Mgnfield(strength=-k1_fluka,rotDefini=rdi.name, applyRegion=0,
+                                     regionFrom=flukaouterregion.name, regionTo=None, regionStep=None,
+                                     sdum = mgnname)
+                self.AddMgnfield(mgnfield)
+
+                mgncreat = _Mgncreat(fieldType=_Mgncreat.QUADRUPOLE, applicableRadius=0, xOffset=0, yOffset=0, mirrorSymmetry=0, sdum=mgnname)
+                self.AddMgncreat(mgncreat)
+
+                # increment mgn count
+                self.flukamgncount += 1
 
             # book keeping information for the instance
             instance_bki['category']     = element.category
