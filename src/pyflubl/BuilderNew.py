@@ -1167,12 +1167,14 @@ class Machine(_Coordinates) :
         translation = bki['translation']
         rotation = _matrix2tbxyz(_np.linalg.inv(_np.array(bki['rotation'])))
         rdi = _rotoTranslationFromTra2("TM"+format(self.flukamgncount, "03"),[rotation, translation])
-        if len(rdi) > 0 :
-            self.flukaregistry.addRotoTranslation(rdi)
 
         # find vacuum region
         vacuum_index = bki['physicalVolumes'].index(vacPhysical.name)
         vacuum_region = bki['flukaRegions'][vacuum_index]
+
+        # add transformation to registry
+        if len(rdi) > 0 :
+            self.flukaregistry.addRotoTranslation(rdi)
 
         # make and assign field to region(s)
         mgnname = "MG"+format(self.flukamgncount, "03")
@@ -1269,12 +1271,14 @@ class Machine(_Coordinates) :
         translation = bki['translation']
         rotation = _matrix2tbxyz(_np.linalg.inv(_np.array(bki['rotation'])))
         rdi = _rotoTranslationFromTra2("TM"+format(self.flukamgncount, "03"),[rotation, translation])
-        if len(rdi) > 0 :
-            self._GetFlukaRegistry(flukaRegistryAdd=True).addRotoTranslation(rdi)
 
         # find vacuum region
         vacuum_index = bki['physicalVolumes'].index(vacPhysical.name)
         vacuum_region = bki['flukaRegions'][vacuum_index]
+
+        # add transformation to registry
+        if len(rdi) > 0 :
+            self._GetFlukaRegistry(flukaRegistryAdd=True).addRotoTranslation(rdi)
 
         # make and assign field to region(s)
         mgnname = "MG"+format(self.flukamgncount, "03")
@@ -1368,12 +1372,14 @@ class Machine(_Coordinates) :
         translation = -_np.array(bki['translation'])
         rotation = _matrix2tbxyz(_np.linalg.inv(_np.array(bki['rotation'])))
         rdi = _rotoTranslationFromTra2("TM"+format(self.flukamgncount, "03"),[rotation, translation])
-        if len(rdi) > 0 :
-            self._GetFlukaRegistry(flukaRegistryAdd=True).addRotoTranslation(rdi)
 
         # find vacuum region
         vacuum_index = bki['physicalVolumes'].index(vacPhysical.name)
         vacuum_region = bki['flukaRegions'][vacuum_index]
+
+        # add transformation to registry
+        if len(rdi) > 0 :
+            self._GetFlukaRegistry(flukaRegistryAdd=True).addRotoTranslation(rdi)
 
         # make and assign field to region(s)
         mgnname = "MG"+format(self.flukamgncount, "03")
