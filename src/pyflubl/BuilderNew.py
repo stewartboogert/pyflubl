@@ -1257,7 +1257,6 @@ class Machine(_Coordinates) :
 
         ret_dict = self._MakeFlukaComponentCommonG4(name,outerLogical, outerPhysical, flukaConvert,
                                                     rotation, translation, geomtranslation, "sbend", False, prototype)
-
         # calculate field strength
         rho = length/angle
 
