@@ -289,7 +289,7 @@ class Machine(_Coordinates) :
                        _Element._tiltshift_allowed_keys
         self._CheckElementKwargs(kwargs,allowed_keys)
         self._SetDefaultElementKwargs(kwargs, allowed_keys)
-        e = _Element(name=name, category="customG4", length = length, **kwargs)
+        e = _Element(name=name, category="customG4", length = length, containerLV=containerLV, **kwargs)
         #e = _ElementCustomG4(name, length, containerLV, **kwargs)
         if add :
             self.Append(e)
@@ -1937,12 +1937,29 @@ class Machine(_Coordinates) :
         # registry
         g4registry = self._GetGeant4Registry(geant4RegistryAdd)
 
+        # custom geometry LV
+        customContainerLV = element['containerLV']
+
+        # convert materials from geant4
+        _pyg4.convert.geant42Fluka.geant4MaterialDict2Fluka(g4registry.materialDict,
+                                                            self._GetFlukaRegistry(flukaRegistryAdd=True))
+
         # make outer volume
         [outerLogical, outerPhysical] = _MakeOuterTrapezoid(g4registry, name = name, motherLogical=self.worldLogical,
                                                             tra_coords=trapezoidalbound*1000,
-                                                            outerVerticalSize=outerVerticalSize,
+                                                            outerVerticalSize=5000,
                                                             outerMaterial=outerMaterial)
 
+        customContainerPV = _pyg4.geant4.PhysicalVolume([0, 0, 0],
+                                                        [0, 0, 0],
+                                                        customContainerLV,
+                                                        customContainerLV.name+"_pv",
+                                                        outerLogical,
+                                                        g4registry)
+
+        # take LV as outer
+        outerLogical = customContainerLV
+        outerPhysical = customContainerPV
 
         self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
 
