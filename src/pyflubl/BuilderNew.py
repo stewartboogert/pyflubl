@@ -2,6 +2,7 @@ from collections import defaultdict as _defaultdict
 import numpy as _np
 import json as _json
 import pprint as _pprint
+import copy as _copy
 
 from .Coordinates import Coordinates as _Coordinates
 from .Options import Options as _Options
@@ -27,6 +28,7 @@ from pyg4ometry.transformation import matrix2tbxyz as _matrix2tbxyz
 from pyg4ometry.transformation import tbxyz2matrix as _tbxyz2matrix
 from pyg4ometry.transformation import tbxyz2axisangle as _tbxyz2axisangle
 
+from .Fluka import Lattice  as _Lattice
 from .Fluka import Mgnfield as _Mgnfield
 from .Fluka import Mgncreat as _Mgncreat
 from .Fluka import Stepsize as _Stepsize
@@ -54,10 +56,24 @@ class Machine(_Coordinates) :
         # total length of machine
         self.length = 0
 
-        # extent of machine in x,y,z
-        self.maxx = 0.0
-        self.maxy = 0.0
-        self.maxz = 0.0
+        # extent of machine
+        self.world_min = [ 0, 0, 0]
+        self.world_max = [ 0, 0, 0]
+
+        # extent of prototypes
+        self.prototype_min = [ 0, 0, 0]
+        self.prototype_max = [ 0, 0, 0]
+
+        # extent of simulation (max and min of machine and prototypes)
+        self.simulation_min = [ 0, 0, 0]
+        self.simulation_max = [ 0, 0, 0]
+
+        # offset between prototypes and world
+        self.prototype_world_offset = [ 0, 0, 0]
+
+        # current prototype location
+        self.prototype_position = [ 0, 0, 0]
+        self.prototype_pad = [ 100, 100, 100]
 
         # geometry registries (will be populated when MakeFlukaModel is called)
         self.g4registry = None
@@ -80,6 +96,7 @@ class Machine(_Coordinates) :
         self.flukanamecount = 0
         self.flukamgncount = 0     # number of magnetic field ROT-DEF placements
         self.flukabincount = 0
+        self.flukalatcount = 0
 
         # fluka control cards
         self.beam = None
@@ -90,6 +107,7 @@ class Machine(_Coordinates) :
         self.elcfield = None
         self.title = None
         self.fglobal = None
+        self.lattice = []
         self.mgnfield = []
         self.mgncreat = []
         self.mgndata = []
@@ -103,17 +121,18 @@ class Machine(_Coordinates) :
         self.usricall = None
         self.usrocall = None
 
-    def AddDrift(self,name, length, **kwargs):
+    def AddDrift(self,name, length, add=True, **kwargs):
         allowed_keys = _Element._beampipe_allowed_keys + \
                        _Element._outer_allowed_keys + \
                        _Element._tiltshift_allowed_keys
         self._CheckElementKwargs(kwargs, allowed_keys)
         self._SetDefaultElementKwargs(kwargs, allowed_keys)
         e = _Element(name=name, category="drift", length=length, **kwargs)
-        self.Append(e)
+        if add :
+            self.Append(e)
         return e
 
-    def AddRBend(self, name, length,  **kwargs):
+    def AddRBend(self, name, length, add=True, **kwargs):
         allowed_keys = _Element._beampipe_allowed_keys + \
                        _Element._outer_allowed_keys + \
                        _Element._rbend_allowed_keys + \
@@ -125,10 +144,11 @@ class Machine(_Coordinates) :
         kwargs['outerE2'] = -kwargs['e2']
 
         e = _Element(name=name, category="rbend", length=length, **kwargs)
-        self.Append(e)
+        if add :
+            self.Append(e)
         return e
 
-    def AddSBend(self, name, length, **kwargs):
+    def AddSBend(self, name, length, add=True, **kwargs):
         allowed_keys = _Element._beampipe_allowed_keys + \
                        _Element._outer_allowed_keys + \
                        _Element._sbend_allowed_keys + \
@@ -142,17 +162,22 @@ class Machine(_Coordinates) :
         kwargs['outerE2'] = -kwargs['angle']/2 - kwargs['e2']
 
         e = _Element(name=name, category="sbend", length = length, **kwargs)
-        self.Append(e)
+        if add :
+            self.Append(e)
+
         return e
 
-    def AddSBendSplit(self, name, length, nsplit=10, **kwargs):
+    def AddSBendSplit(self, name, length, nsplit=10, add=True, **kwargs):
         angle = kwargs.pop('angle')/nsplit
         length = length/nsplit
 
+        sbends = []
         for i in range(0,nsplit):
-            self.AddSBend(name+"_split_"+str(i), length, angle = angle, **kwargs)
+            s = self.AddSBend(name+"_split_"+str(i), length, angle = angle, add=add, **kwargs)
+            sbends.append(s)
+        return sbends
 
-    def AddQuadrupole(self, name, length, **kwargs):
+    def AddQuadrupole(self, name, length, add=True, **kwargs):
         allowed_keys = _Element._beampipe_allowed_keys + \
                        _Element._outer_allowed_keys + \
                        _Element._tiltshift_allowed_keys + \
@@ -161,10 +186,11 @@ class Machine(_Coordinates) :
         self._CheckElementKwargs(kwargs, allowed_keys)
         self._SetDefaultElementKwargs(kwargs, allowed_keys)
         e = _Element(name=name, category="quadrupole", length = length, **kwargs)
-        self.Append(e)
+        if add :
+            self.Append(e)
         return e
 
-    def AddTarget(self, name, length, **kwargs):
+    def AddTarget(self, name, length, add=True, **kwargs):
         allowed_keys = _Element._outer_allowed_keys + \
                        _Element._tiltshift_allowed_keys + \
                        _Element._target_allowed_keys
@@ -172,40 +198,44 @@ class Machine(_Coordinates) :
         self._CheckElementKwargs(kwargs, allowed_keys)
         self._SetDefaultElementKwargs(kwargs, allowed_keys)
         e = _Element(name=name, category="target", length = length, **kwargs)
-        self.Append(e)
+        if add :
+            self.Append(e)
         return e
 
-    def AddRCol(self, name, length, **kwargs):
+    def AddRCol(self, name, length, add=True, **kwargs):
         allowed_keys = _Element._outer_allowed_keys + \
                        _Element._tiltshift_allowed_keys + \
                        _Element._rcol_allowed_keys
         self._CheckElementKwargs(kwargs, allowed_keys)
         self._SetDefaultElementKwargs(kwargs, allowed_keys)
         e = _Element(name=name, category="rcol", length = length, **kwargs)
-        self.Append(e)
+        if add :
+            self.Append(e)
         return e
 
-    def AddECol(self, name, length, **kwargs):
+    def AddECol(self, name, length, add=True, **kwargs):
         allowed_keys = _Element._outer_allowed_keys + \
                        _Element._tiltshift_allowed_keys + \
                        _Element._ecol_allowed_keys
         self._CheckElementKwargs(kwargs, allowed_keys)
         self._SetDefaultElementKwargs(kwargs, allowed_keys)
         e = _Element(name=name, category="ecol", length = length, **kwargs)
-        self.Append(e)
+        if add :
+            self.Append(e)
         return e
 
-    def AddJCol(self, name, length, **kwargs):
+    def AddJCol(self, name, length, add=True, **kwargs):
         allowed_keys = _Element._outer_allowed_keys + \
                        _Element._tiltshift_allowed_keys + \
                        _Element._jcol_allowed_keys
         self._CheckElementKwargs(kwargs,allowed_keys)
         self._SetDefaultElementKwargs(kwargs, allowed_keys)
         e = _Element(name=name, category="jcol", length = length, **kwargs)
-        self.Append(e)
+        if add :
+            self.Append(e)
         return e
 
-    def AddShield(self, name, length, **kwargs):
+    def AddShield(self, name, length, add=True, **kwargs):
         allowed_keys = _Element._outer_allowed_keys + \
                        _Element._tiltshift_allowed_keys + \
                        _Element._beampipe_allowed_keys + \
@@ -213,10 +243,11 @@ class Machine(_Coordinates) :
         self._CheckElementKwargs(kwargs, allowed_keys)
         self._SetDefaultElementKwargs(kwargs, allowed_keys)
         e = _Element(name=name, category="shield", length = length, **kwargs)
-        self.Append(e)
+        if add :
+            self.Append(e)
         return e
 
-    def AddDump(self, name, length, **kwargs):
+    def AddDump(self, name, length, add=True, **kwargs):
         allowed_keys = _Element._outer_allowed_keys + \
                        _Element._tiltshift_allowed_keys + \
                        _Element._target_allowed_keys
@@ -224,10 +255,11 @@ class Machine(_Coordinates) :
         self._CheckElementKwargs(kwargs, allowed_keys)
         self._SetDefaultElementKwargs(kwargs, allowed_keys)
         e = _Element(name=name, category="dump", length = length, **kwargs)
-        self.Append(e)
+        if add :
+            self.Append(e)
         return e
 
-    def AddWireScanner(self, name, length, **kwargs):
+    def AddWireScanner(self, name, length, add=True, **kwargs):
         allowed_keys = _Element._outer_allowed_keys + \
                        _Element._tiltshift_allowed_keys + \
                        _Element._beampipe_allowed_keys + \
@@ -236,19 +268,21 @@ class Machine(_Coordinates) :
         self._CheckElementKwargs(kwargs,allowed_keys)
         self._SetDefaultElementKwargs(kwargs, allowed_keys)
         e = _Element(name=name, category="wirescanner", length = length, **kwargs)
-        self.Append(e)
+        if add :
+            self.Append(e)
         return e
 
-    def AddGap(self, name, length, **kwargs):
+    def AddGap(self, name, length, add=True, **kwargs):
         allowed_keys = _Element._outer_allowed_keys + \
                        _Element._tiltshift_allowed_keys
         self._CheckElementKwargs(kwargs,allowed_keys)
         self._SetDefaultElementKwargs(kwargs,allowed_keys)
         e = _Element(name, category="gap", length = length, **kwargs)
-        self.Append(e)
+        if add :
+            self.Append(e)
         return e
 
-    def AddCustomG4(self, name, length, containerLV, **kwargs):
+    def AddCustomG4(self, name, length, containerLV, add=True, **kwargs):
         allowed_keys = _Element._outer_allowed_keys + \
                        _Element._customg4_allowed_keys + \
                        _Element._customg4file_allowed_keys + \
@@ -257,10 +291,11 @@ class Machine(_Coordinates) :
         self._SetDefaultElementKwargs(kwargs, allowed_keys)
         e = _Element(name=name, category="customG4", length = length, **kwargs)
         #e = _ElementCustomG4(name, length, containerLV, **kwargs)
-        self.Append(e)
+        if add :
+            self.Append(e)
         return e
 
-    def AddCustomG4File(self, name, length, **kwargs):
+    def AddCustomG4File(self, name, length, add=True, **kwargs):
         allowed_keys = _Element._outer_allowed_keys + \
                        _Element._customg4file_allowed_keys + \
                        _Element._tiltshift_allowed_keys
@@ -277,9 +312,9 @@ class Machine(_Coordinates) :
         reader = _pyg4.gdml.Reader(geometry_file, registryIn = g4registry)
         lv = g4registry.logicalVolumeDict[lv_name]
 
-        self.AddCustomG4(name,length, containerLV = lv, **kwargs)
+        self.AddCustomG4(name,length, containerLV = lv, add=add, **kwargs)
 
-    def AddCustomFluka(self, name, length, **kwargs):
+    def AddCustomFluka(self, name, length, add=True, **kwargs):
         allowed_keys = _Element._outer_allowed_keys +\
                        _Element._customfluka_allowed_keys + \
                        _Element._customflukafile_allowed_keys
@@ -290,10 +325,11 @@ class Machine(_Coordinates) :
                      category="customFluka",
                      length=length,
                      **kwargs)
-        self.Append(e)
+        if add :
+            self.Append(e)
         return e
 
-    def AddCustomFlukaFile(self, name, length, **kwargs):
+    def AddCustomFlukaFile(self, name, length, add=True, **kwargs):
         allowed_keys = _Element._outer_allowed_keys + \
                        _Element._customflukafile_allowed_keys
         self._CheckElementKwargs(kwargs,_Element._customflukafile_allowed_keys)
@@ -323,25 +359,21 @@ class Machine(_Coordinates) :
         self.AddCustomFluka(name,
                             length,
                             flukaRegistry=registry,
+                            add=add,
                             **kwargs)
 
     def AddLatticeInstance(self, name, prototypeName):
         e = _Element(name=name,
                      category="lattice_instance",
-                     length=self.prototypes[prototypeName].length,
-                     prototypeName=prototypeName)
+                     length=self.prototypes[prototypeName]['element'].length,
+                     prototype = self.prototypes[prototypeName]['element'])
         self.Append(e)
         return e
 
-    def AddLatticePrototype(self, name, length, **kwargs):
-        e = _Element(name=name,
-                     category="lattice_prototype",
-                     length = length,
-                     **kwargs)
+    def AddLatticePrototype(self, e, **kwargs):
         # save in prototype dict
-        # transformation to be populated when built
-        self.prototypes[name] = {"element":e, "rotation":None, "translation":None}
-        return e
+        # transformation information to be populated when built
+        self.prototypes[e.name] = {"element":e}
 
     def AddSamplerPlane(self, name, length = None, **kwargs):
         allowed_keys = _Element._outer_allowed_keys + \
@@ -468,6 +500,9 @@ class Machine(_Coordinates) :
 
     def AddGlobal(self, fglobal):
         self.fglobal = fglobal
+
+    def AddLattice(self, lattice):
+        self.lattice.append(lattice)
 
     def AddMgnfield(self, mgnfield):
         self.mgnfield.append(mgnfield)
@@ -623,6 +658,9 @@ class Machine(_Coordinates) :
             self.elcfield.AddRegistry(self.flukaregistry)
         if self.fglobal:
             self.fglobal.AddRegistry(self.flukaregistry)
+        if len(self.lattice) > 0 :
+            for la in self.lattice:
+                la.AddRegistry(self.flukaregistry)
         if len(self.mgnfield) > 0 :
             for mf in self.mgnfield:
                 mf.AddRegistry(self.flukaregistry)
@@ -686,13 +724,16 @@ class Machine(_Coordinates) :
         extent = self.CalculateExtent()
 
         # sizes in cm
-        xmax = max(abs(extent[0][0]), abs(extent[1][0]))*100 + 1000
-        ymax = max(abs(extent[0][1]), abs(extent[1][1]))*100 + 1000
-        zmax = max(abs(extent[0][2]), abs(extent[1][2]))*100 + 1000
+        xmax = max(abs(extent[0][0]), abs(extent[1][0]))*100
+        ymax = max(abs(extent[0][1]), abs(extent[1][1]))*100
+        zmax = max(abs(extent[0][2]), abs(extent[1][2]))*100
 
         # make world region and surrounding black body
-        self.MakeFlukaInitialGeometry(worldsize=[xmax,ymax,zmax],worldmaterial=self.options.worldMaterial)
+        self.MakeFlukaInitialGeometry(world_min=[c*100 for c in extent[0]],
+                                      world_max=[c*100 for c in extent[1]],
+                                      worldmaterial=self.options.worldMaterial)
         self.MakeGeant4InitialGeometry(worldsize=[2*xmax*10, 2*ymax*10, 2*zmax*10])
+
 
         # fix faces of elements
         # self._FixElementFaces(view=False)
@@ -725,25 +766,53 @@ class Machine(_Coordinates) :
         self.worldLogical = _pyg4.geant4.LogicalVolume(worldSolid, worldMaterial, "worldLogical", self._GetGeant4Registry(geant4RegistryAdd=True))
         self._GetGeant4Registry(geant4RegistryAdd=True).setWorldVolume(self.worldLogical)
 
-    def MakeFlukaInitialGeometry(self, worldsize = [250, 250, 250], worldmaterial = "AIR"):
+    def MakeFlukaInitialGeometry(self,
+                                 world_min = [-250, -250, -250],
+                                 world_max = [ 250,  250,  250],
+                                 worldmaterial = "AIR",
+                                 world_pad = 200):
+
+        # store world size
+        self.world_min = world_min
+        self.world_max = world_max
+        self.simulation_min = world_min
+        self.simulation_max = world_max
+
+        # prototype
+        if len(self.prototypes) != 0 :
+            world_dz = world_max[2] - world_min[2]
+
+            self.prototype_min = [self.world_min[0], self.world_min[1], self.world_min[2] - world_dz]
+            self.prototype_max = [self.world_max[0], self.world_max[1], self.world_max[2] - world_dz]
+
+            self.simulation_min = [ min(cw,cp) for cw, cp in zip(self.world_min,self.prototype_min)]
+            self.simulation_max = [ max(cw,cp) for cw, cp in zip(self.world_max,self.prototype_max)]
+
+            self.prototype_world_offset = [0,0, world_dz]
+
+            self.prototype_position = [ self.prototype_min[0] + self.prototype_pad[0],
+                                        0,
+                                        self.prototype_min[2] + self.prototype_pad[2]]
+
         blackbody = _pyg4.fluka.RPP("BLKBODY",
-                               -2*worldsize[0],2*worldsize[0],
-                               -2*worldsize[1],2*worldsize[1],
-                               -2*worldsize[2],2*worldsize[2],
+                               self.simulation_min[0]-world_pad, self.simulation_max[0]+world_pad,
+                               self.simulation_min[1]-world_pad, self.simulation_max[1]+world_pad,
+                               self.simulation_min[2]-world_pad, self.simulation_max[2]+world_pad,
                                transform=_rotoTranslationFromTra2("BBROTDEF",[[0,0,0],[0,0,0]],
                                                                   flukaregistry=self.flukaregistry),
                                flukaregistry=self.flukaregistry)
 
         worldbody = _pyg4.fluka.RPP("WORLD",
-                               -1.5*worldsize[0],1.5*worldsize[0],
-                               -1.5*worldsize[1],1.5*worldsize[1],
-                               -1.5*worldsize[2],1.5*worldsize[2],
+                               self.simulation_min[0],self.simulation_max[0],
+                               self.simulation_min[1],self.simulation_max[1],
+                               self.simulation_min[2],self.simulation_max[2],
                                transform=_rotoTranslationFromTra2("BBROTDEF",[[0,0,0],[0,0,0]],
                                                                   flukaregistry=self.flukaregistry),
                                flukaregistry=self.flukaregistry)
 
         self.blackbodyzone = _pyg4.fluka.Zone()
         self.worldzone     = _pyg4.fluka.Zone()
+        self.parkingzone   = _pyg4.fluka.Zone()
 
         self.blackbodyzone.addIntersection(blackbody)
         self.blackbodyzone.addSubtraction(worldbody)
@@ -762,6 +831,25 @@ class Machine(_Coordinates) :
         self.flukaregistry.addMaterialAssignments(worldmaterial,
                                                   "WORLD")
 
+        # if there are not prototype elements return
+        if len(self.prototypes) == 0 :
+            return
+
+        parkingbody = _pyg4.fluka.RPP("PRKBODY",
+                                      self.prototype_min[0]+1, self.prototype_max[0]-1,
+                                      self.prototype_min[1]+1, self.prototype_max[1]-1,
+                                      self.prototype_min[2]+1, self.prototype_max[2]-1,
+                                      transform=_rotoTranslationFromTra2("PRKROTDEF",[[0,0,0],[0,0,0]],
+                                                                         flukaregistry=self.flukaregistry),
+                                      flukaregistry=self.flukaregistry)
+
+        self.worldzone.addSubtraction(parkingbody)
+        self.parkingzone.addIntersection(parkingbody)
+        self.parkingregion = _pyg4.fluka.Region("PARKING")
+        self.parkingregion.addZone(self.parkingzone)
+        self.flukaregistry.addMaterialAssignments("GOLD","PARKING")
+        self.flukaregistry.addRegion(self.parkingregion)
+
     def ElementFactory(self,
                        element,
                        rotation,
@@ -770,7 +858,8 @@ class Machine(_Coordinates) :
                        cubicalbound,
                        trapezoidalbound,
                        g4add = True,
-                       fc = True):
+                       fc = True,
+                       prototype = False):
         if self.verbose :
             print("pyflubl.BuilderNew.Machine.ElementFactory: Making FLUKA geometry for ", element.name, element.category)
 
@@ -783,7 +872,8 @@ class Machine(_Coordinates) :
                                        cubicalbound=cubicalbound,
                                        trapezoidalbound=trapezoidalbound,
                                        geant4RegistryAdd=g4add,
-                                       flukaConvert=fc)
+                                       flukaConvert=fc,
+                                       prototype=prototype)
         if element.category == "rbend":
             return self.MakeFlukaRBend(name=element.name,
                                        element=element,
@@ -793,7 +883,8 @@ class Machine(_Coordinates) :
                                        cubicalbound=cubicalbound,
                                        trapezoidalbound=trapezoidalbound,
                                        geant4RegistryAdd=g4add,
-                                       flukaConvert=fc)
+                                       flukaConvert=fc,
+                                       prototype=prototype)
         if element.category == "sbend":
             return self.MakeFlukaSBend(name=element.name,
                                        element=element,
@@ -803,17 +894,19 @@ class Machine(_Coordinates) :
                                        cubicalbound=cubicalbound,
                                        trapezoidalbound=trapezoidalbound,
                                        geant4RegistryAdd=g4add,
-                                       flukaConvert=fc)
+                                       flukaConvert=fc,
+                                       prototype=prototype)
         elif element.category == "quadrupole":
             return self.MakeFlukaQuadrupole(name=element.name,
-                                           element=element,
-                                           rotation=rotation,
-                                           translation=translation * 1000,
-                                           geomtranslation=geomtranslation * 1000,
-                                           cubicalbound=cubicalbound,
-                                           trapezoidalbound=trapezoidalbound,
-                                           geant4RegistryAdd=g4add,
-                                           flukaConvert=fc)
+                                            element=element,
+                                            rotation=rotation,
+                                            translation=translation * 1000,
+                                            geomtranslation=geomtranslation * 1000,
+                                            cubicalbound=cubicalbound,
+                                            trapezoidalbound=trapezoidalbound,
+                                            geant4RegistryAdd=g4add,
+                                            flukaConvert=fc,
+                                            prototype=prototype)
         elif element.category == "target":
             return self.MakeFlukaTarget(name=element.name,
                                         element=element,
@@ -823,7 +916,8 @@ class Machine(_Coordinates) :
                                         cubicalbound=cubicalbound,
                                         trapezoidalbound=trapezoidalbound,
                                         geant4RegistryAdd=g4add,
-                                        flukaConvert=fc)
+                                        flukaConvert=fc,
+                                        prototype=prototype)
         elif element.category == "rcol":
             return self.MakeFlukaRCol(name=element.name,
                                       element=element,
@@ -833,7 +927,8 @@ class Machine(_Coordinates) :
                                       cubicalbound=cubicalbound,
                                       trapezoidalbound=trapezoidalbound,
                                       geant4RegistryAdd=g4add,
-                                      flukaConvert=fc)
+                                      flukaConvert=fc,
+                                      prototype=prototype)
         elif element.category == "ecol":
             return self.MakeFlukaECol(name=element.name,
                                       element=element,
@@ -843,7 +938,8 @@ class Machine(_Coordinates) :
                                       cubicalbound=cubicalbound,
                                       trapezoidalbound=trapezoidalbound,
                                       geant4RegistryAdd=g4add,
-                                      flukaConvert=fc)
+                                      flukaConvert=fc,
+                                      prototype=prototype)
         elif element.category == "jcol":
             return self.MakeFlukaJCol(name=element.name,
                                       element=element,
@@ -853,7 +949,8 @@ class Machine(_Coordinates) :
                                       cubicalbound=cubicalbound,
                                       trapezoidalbound=trapezoidalbound,
                                       geant4RegistryAdd=g4add,
-                                      flukaConvert=fc)
+                                      flukaConvert=fc,
+                                      prototype=prototype)
         elif element.category == "shield":
             return self.MakeFlukaShield(name=element.name,
                                         element=element,
@@ -863,7 +960,8 @@ class Machine(_Coordinates) :
                                         cubicalbound=cubicalbound,
                                         trapezoidalbound=trapezoidalbound,
                                         geant4RegistryAdd=g4add,
-                                        flukaConvert=fc)
+                                        flukaConvert=fc,
+                                        prototype=prototype)
         elif element.category == "dump":
             return self.MakeFlukaDump(name=element.name,
                                       element=element,
@@ -873,7 +971,8 @@ class Machine(_Coordinates) :
                                       cubicalbound=cubicalbound,
                                       trapezoidalbound=trapezoidalbound,
                                       geant4RegistryAdd=g4add,
-                                      flukaConvert=fc)
+                                      flukaConvert=fc,
+                                      prototype=prototype)
         elif element.category == "wirescanner":
             return self.MakeFlukaWireScanner(name=element.name,
                                              element=element,
@@ -883,7 +982,8 @@ class Machine(_Coordinates) :
                                              cubicalbound=cubicalbound,
                                              trapezoidalbound=trapezoidalbound,
                                              geant4RegistryAdd=g4add,
-                                             flukaConvert=fc)
+                                             flukaConvert=fc,
+                                             prototype=prototype)
         elif element.category == "gap":
             return self.MakeFlukaGap(name=element.name,
                                      element=element,
@@ -893,7 +993,8 @@ class Machine(_Coordinates) :
                                      cubicalbound=cubicalbound,
                                      trapezoidalbound=trapezoidalbound,
                                      geant4RegistryAdd=g4add,
-                                     flukaConvert=fc)
+                                     flukaConvert=fc,
+                                     prototype=prototype)
         elif element.category == "customG4":
             return self.MakeFlukaCustomG4(name=element.name,
                                           element=element,
@@ -903,7 +1004,9 @@ class Machine(_Coordinates) :
                                           cubicalbound=cubicalbound,
                                           trapezoidalbound=trapezoidalbound,
                                           geant4RegistryAdd=g4add,
-                                          flukaConvert=fc)
+                                          flukaConvert=fc,
+                                          material=None,
+                                          prototype=prototype)
         elif element.category == "customFluka":
             return self.MakeFlukaCustomFluka(name=element.name,
                                              element=element,
@@ -912,7 +1015,8 @@ class Machine(_Coordinates) :
                                              geomtranslation=geomtranslation * 1000,
                                              cubicalbound=cubicalbound,
                                              trapezoidalbound=trapezoidalbound,
-                                             flukaConvert=fc)
+                                             flukaConvert=fc,
+                                             prototype=prototype)
         elif element.category == "sampler_plane":
             return self.MakeFlukaSampler(name=element.name,
                                          element=element,
@@ -923,6 +1027,16 @@ class Machine(_Coordinates) :
                                          trapezoidalbound=trapezoidalbound,
                                          geant4RegistryAdd=g4add,
                                          flukaConvert=fc)
+        elif element.category == "lattice_instance" :
+            return self.MakeFlukaLatticeInstance(name=element.name,
+                                                 element=element,
+                                                 rotation=rotation,
+                                                 translation = translation * 1000,
+                                                 geomtranslation = geomtranslation * 1000,
+                                                 cubicalbound = cubicalbound,
+                                                 trapezoidalbound = trapezoidalbound,
+                                                 geant4RegistryAdd = g4add,
+                                                 flukaConvert = fc)
         else :
             print("Element category not recognized: ", element.category)
 
@@ -935,7 +1049,8 @@ class Machine(_Coordinates) :
                        cubicalbound = None,
                        trapezoidalbound = None,
                        geant4RegistryAdd = False,
-                       flukaConvert = True):
+                       flukaConvert = True,
+                       prototype = False):
 
         if self.verbose :
             print("pyflubl.BuilderNew.Machine.MakeFlukaDrift: Making drfit element ", name)
@@ -978,7 +1093,7 @@ class Machine(_Coordinates) :
         self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
 
         return self._MakeFlukaComponentCommonG4(name,outerLogical, outerPhysical, flukaConvert,
-                                                rotation, translation, geomtranslation, "drift")
+                                                rotation, translation, geomtranslation, "drift", False, prototype)
 
 
     def MakeFlukaRBend(self,
@@ -990,7 +1105,8 @@ class Machine(_Coordinates) :
                        cubicalbound = None,
                        trapezoidalbound = None,
                        geant4RegistryAdd = False,
-                       flukaConvert = True):
+                       flukaConvert = True,
+                       prototype = False):
 
         if self.verbose :
             print("pyflubl.BuilderNew.Machine.MakeFlukaRBend: Making rbend element ", name)
@@ -1035,7 +1151,7 @@ class Machine(_Coordinates) :
         self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
 
         ret_dict = self._MakeFlukaComponentCommonG4(name,outerLogical, outerPhysical, flukaConvert,
-                                                    rotation, translation, geomtranslation, "rbend")
+                                                    rotation, translation, geomtranslation, "rbend", False, prototype)
 
         # calculate field strength
         rho = length/(2*_np.sin(angle/2.))
@@ -1048,33 +1164,39 @@ class Machine(_Coordinates) :
         translation = bki['translation']
         rotation = _matrix2tbxyz(_np.linalg.inv(_np.array(bki['rotation'])))
         rdi = _rotoTranslationFromTra2("TM"+format(self.flukamgncount, "03"),[rotation, translation])
-        if len(rdi) > 0 :
-            self.flukaregistry.addRotoTranslation(rdi)
 
         # find vacuum region
         vacuum_index = bki['physicalVolumes'].index(vacPhysical.name)
         vacuum_region = bki['flukaRegions'][vacuum_index]
 
-        # make and assign field to region(s)
-        mgnname = "MG"+format(self.flukamgncount, "03")
-        mgnfield = _Mgnfield(strength=-b_field,rotDefini=rdi.name, applyRegion=0,
-                             regionFrom=vacuum_region, regionTo=None, regionStep=None,
-                             sdum = mgnname)
-        self.AddMgnfield(mgnfield)
+        if not prototype :
+            # add transformation to registry
+            if len(rdi) > 0 :
+                self.flukaregistry.addRotoTranslation(rdi)
 
-        mgncreat = _Mgncreat(fieldType=_Mgncreat.DIPOLE, applicableRadius=0, xOffset=0, yOffset=0, mirrorSymmetry=0, sdum=mgnname)
-        self.AddMgncreat(mgncreat)
+            # make and assign field to region(s)
+            mgnname = "MG"+format(self.flukamgncount, "03")
+            mgnfield = _Mgnfield(strength=-b_field,rotDefini=rdi.name, applyRegion=0,
+                                 regionFrom=vacuum_region, regionTo=None, regionStep=None,
+                                 sdum = mgnname)
+            self.AddMgnfield(mgnfield)
 
-        # add stepsize
-        stepsize = _Stepsize(minStepSize=-0.1/1e3, maxStepSize=1.0,
-                             regionFrom=vacuum_region, regionTo=None, regionStep=None)
-        self.AddStepsize(stepsize)
+            mgncreat = _Mgncreat(fieldType=_Mgncreat.DIPOLE, applicableRadius=0, xOffset=0, yOffset=0, mirrorSymmetry=0, sdum=mgnname)
+            self.AddMgncreat(mgncreat)
 
-        # add magnetic field to assimat
-        self.flukaregistry.assignmaAddMagnetic(vacuum_region, mgnname)
+            # add stepsize
+            stepsize = _Stepsize(minStepSize=-0.1/1e3, maxStepSize=1.0,
+                                 regionFrom=vacuum_region, regionTo=None, regionStep=None)
+            self.AddStepsize(stepsize)
 
-        # increment mgn count
-        self.flukamgncount += 1
+            # increment mgn count
+            self.flukamgncount += 1
+
+            # add magnetic field to assimat
+            self.flukaregistry.assignmaAddMagnetic(vacuum_region, mgnname)
+        else :
+            # add magnetic field to assimat
+            self.flukaregistry.assignmaAddMagnetic(vacuum_region, "dummy")
 
         return ret_dict
 
@@ -1087,7 +1209,8 @@ class Machine(_Coordinates) :
                        cubicalbound = None,
                        trapezoidalbound = None,
                        geant4RegistryAdd = False,
-                       flukaConvert = True):
+                       flukaConvert = True,
+                       prototype = False):
 
         if self.verbose :
             print("pyflubl.BuilderNew.Machine.MakeFlukaSBend: Making sbend element ", name)
@@ -1134,7 +1257,7 @@ class Machine(_Coordinates) :
         self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
 
         ret_dict = self._MakeFlukaComponentCommonG4(name,outerLogical, outerPhysical, flukaConvert,
-                                                    rotation, translation, geomtranslation, "sbend")
+                                                    rotation, translation, geomtranslation, "sbend", False, prototype)
 
         # calculate field strength
         rho = length/angle
@@ -1149,36 +1272,42 @@ class Machine(_Coordinates) :
         translation = bki['translation']
         rotation = _matrix2tbxyz(_np.linalg.inv(_np.array(bki['rotation'])))
         rdi = _rotoTranslationFromTra2("TM"+format(self.flukamgncount, "03"),[rotation, translation])
-        if len(rdi) > 0 :
-            self._GetFlukaRegistry(flukaRegistryAdd=True).addRotoTranslation(rdi)
 
         # find vacuum region
         vacuum_index = bki['physicalVolumes'].index(vacPhysical.name)
         vacuum_region = bki['flukaRegions'][vacuum_index]
 
-        # make and assign field to region(s)
-        mgnname = "MG"+format(self.flukamgncount, "03")
-        mgnfield = _Mgnfield(strength=-b_field,rotDefini=rdi.name, applyRegion=0,
-                             regionFrom=vacuum_region, regionTo=None, regionStep=None,
-                             sdum = mgnname)
-        self.AddMgnfield(mgnfield)
+        if not prototype :
+            # add transformation to registry
+            if len(rdi) > 0 :
+                self._GetFlukaRegistry(flukaRegistryAdd=True).addRotoTranslation(rdi)
 
-        mgncreat = _Mgncreat(fieldType=_Mgncreat.DIPOLE, applicableRadius=0, xOffset=0, yOffset=0, mirrorSymmetry=0, sdum=mgnname)
-        self.AddMgncreat(mgncreat)
+            # make and assign field to region(s)
+            mgnname = "MG"+format(self.flukamgncount, "03")
+            mgnfield = _Mgnfield(strength=-b_field,rotDefini=rdi.name, applyRegion=0,
+                                 regionFrom=vacuum_region, regionTo=None, regionStep=None,
+                                 sdum = mgnname)
+            self.AddMgnfield(mgnfield)
 
-        # add stepsize
-        stepsize = _Stepsize(minStepSize=-0.1/1e3, maxStepSize=0.1,
-                             regionFrom=vacuum_region, regionTo=None, regionStep=None)
-        self.AddStepsize(stepsize)
+            mgncreat = _Mgncreat(fieldType=_Mgncreat.DIPOLE, applicableRadius=0, xOffset=0, yOffset=0, mirrorSymmetry=0, sdum=mgnname)
+            self.AddMgncreat(mgncreat)
 
-        # add magnetic field to assimat
-        self.flukaregistry.assignmaAddMagnetic(vacuum_region, mgnname)
+            # add stepsize
+            stepsize = _Stepsize(minStepSize=-0.1/1e3, maxStepSize=0.1,
+                                 regionFrom=vacuum_region, regionTo=None, regionStep=None)
+            self.AddStepsize(stepsize)
 
-        # increment mgn count
-        self.flukamgncount += 1
+            # increment mgn count
+            self.flukamgncount += 1
+
+            # add magnetic field to assimat
+            self.flukaregistry.assignmaAddMagnetic(vacuum_region, mgnname)
+        else :
+            # add magnetic field to assimat
+            self.flukaregistry.assignmaAddMagnetic(vacuum_region, "dummy")
+
 
         return ret_dict
-
 
     def MakeFlukaQuadrupole(self,
                             name,
@@ -1189,7 +1318,8 @@ class Machine(_Coordinates) :
                             cubicalbound=None,
                             trapezoidalbound=None,
                             geant4RegistryAdd=False,
-                            flukaConvert=True):
+                            flukaConvert=True,
+                            prototype=False):
 
         if self.verbose :
             print("pyflubl.BuilderNew.Machine.MakeFlukaQuadrupole: Making quadrupole element ", name)
@@ -1232,7 +1362,7 @@ class Machine(_Coordinates) :
         self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
 
         ret_dict = self._MakeFlukaComponentCommonG4(name,outerLogical, outerPhysical, flukaConvert,
-                                                    rotation, translation, geomtranslation, "quad")
+                                                    rotation, translation, geomtranslation, "quad", False, prototype)
 
         # calculate field strength
         q_over_p = self.beam.charge/self.beam.momentum
@@ -1247,36 +1377,41 @@ class Machine(_Coordinates) :
         translation = -_np.array(bki['translation'])
         rotation = _matrix2tbxyz(_np.linalg.inv(_np.array(bki['rotation'])))
         rdi = _rotoTranslationFromTra2("TM"+format(self.flukamgncount, "03"),[rotation, translation])
-        if len(rdi) > 0 :
-            self._GetFlukaRegistry(flukaRegistryAdd=True).addRotoTranslation(rdi)
 
         # find vacuum region
         vacuum_index = bki['physicalVolumes'].index(vacPhysical.name)
         vacuum_region = bki['flukaRegions'][vacuum_index]
 
-        # make and assign field to region(s)
-        mgnname = "MG"+format(self.flukamgncount, "03")
-        mgnfield = _Mgnfield(strength=-k1_fluka,rotDefini=rdi.name, applyRegion=0,
-                             regionFrom=vacuum_region, regionTo=None, regionStep=None,
-                             sdum = mgnname)
-        self.AddMgnfield(mgnfield)
+        if not prototype:
+            # add transformation to registry
+            if len(rdi) > 0 :
+                self._GetFlukaRegistry(flukaRegistryAdd=True).addRotoTranslation(rdi)
 
-        mgncreat = _Mgncreat(fieldType=_Mgncreat.QUADRUPOLE, applicableRadius=0, xOffset=0, yOffset=0, mirrorSymmetry=0, sdum=mgnname)
-        self.AddMgncreat(mgncreat)
+            # make and assign field to region(s)
+            mgnname = "MG"+format(self.flukamgncount, "03")
+            mgnfield = _Mgnfield(strength=-k1_fluka,rotDefini=rdi.name, applyRegion=0,
+                                 regionFrom=vacuum_region, regionTo=None, regionStep=None,
+                                 sdum = mgnname)
+            self.AddMgnfield(mgnfield)
 
-        # add stepsize
-        stepsize = _Stepsize(minStepSize=-0.1/1e3, maxStepSize=0.1,
-                             regionFrom=vacuum_region, regionTo=None, regionStep=None)
-        self.AddStepsize(stepsize)
+            mgncreat = _Mgncreat(fieldType=_Mgncreat.QUADRUPOLE, applicableRadius=0, xOffset=0, yOffset=0, mirrorSymmetry=0, sdum=mgnname)
+            self.AddMgncreat(mgncreat)
 
-        # add magnetic field to assimat
-        self.flukaregistry.assignmaAddMagnetic(vacuum_region, mgnname)
+            # add stepsize
+            stepsize = _Stepsize(minStepSize=-0.1/1e3, maxStepSize=0.1, # TODO needs to be user adjustable
+                                 regionFrom=vacuum_region, regionTo=None, regionStep=None)
+            self.AddStepsize(stepsize)
 
-        # increment mgn count
-        self.flukamgncount += 1
+            # increment mgn count
+            self.flukamgncount += 1
+
+            # add magnetic field to assimat
+            self.flukaregistry.assignmaAddMagnetic(vacuum_region, mgnname)
+        else :
+            # add magnetic field to assimat
+            self.flukaregistry.assignmaAddMagnetic(vacuum_region, "dummy")
 
         return ret_dict
-
 
     def MakeFlukaTarget(self,
                         name,
@@ -1287,7 +1422,8 @@ class Machine(_Coordinates) :
                         cubicalbound=None,
                         trapezoidalbound=None,
                         geant4RegistryAdd=False,
-                        flukaConvert=True):
+                        flukaConvert=True,
+                        prototype=False):
 
         if self.verbose :
             print("pyflubl.BuilderNew.Machine.MakeFlukaTarget: Making target element ", name)
@@ -1330,7 +1466,7 @@ class Machine(_Coordinates) :
         self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
 
         return self._MakeFlukaComponentCommonG4(name,outerLogical, outerPhysical, flukaConvert,
-                                                rotation, translation, geomtranslation, "target")
+                                                rotation, translation, geomtranslation, "target", False, prototype)
 
     def MakeFlukaRCol(self,
                       name,
@@ -1341,7 +1477,8 @@ class Machine(_Coordinates) :
                       cubicalbound=None,
                       trapezoidalbound=None,
                       geant4RegistryAdd=False,
-                      flukaConvert=True):
+                      flukaConvert=True,
+                      prototype=False):
 
         if self.verbose :
             print("pyflubl.BuilderNew.Machine.MakeFlukaRCol: Making ecol element ", name)
@@ -1379,7 +1516,7 @@ class Machine(_Coordinates) :
         self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
 
         return self._MakeFlukaComponentCommonG4(name,outerLogical, outerPhysical, flukaConvert,
-                                                rotation, translation, geomtranslation, "rcol")
+                                                rotation, translation, geomtranslation, "rcol", False, prototype)
 
     def MakeFlukaECol(self,
                       name,
@@ -1390,7 +1527,8 @@ class Machine(_Coordinates) :
                       cubicalbound=None,
                       trapezoidalbound=None,
                       geant4RegistryAdd=False,
-                      flukaConvert=True):
+                      flukaConvert=True,
+                      prototype=False):
 
         if self.verbose :
             print("pyflubl.BuilderNew.Machine.MakeFlukaECol: Making target ecol ", name)
@@ -1430,7 +1568,7 @@ class Machine(_Coordinates) :
         self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
 
         return self._MakeFlukaComponentCommonG4(name,outerLogical, outerPhysical, flukaConvert,
-                                                rotation, translation, geomtranslation, "ecol")
+                                                rotation, translation, geomtranslation, "ecol", False, prototype)
 
     def MakeFlukaJCol(self,
                       name,
@@ -1441,7 +1579,8 @@ class Machine(_Coordinates) :
                       cubicalbound=None,
                       trapezoidalbound=None,
                       geant4RegistryAdd=False,
-                      flukaConvert=True):
+                      flukaConvert=True,
+                      prototype=False):
 
         if self.verbose :
             print("pyflubl.BuilderNew.Machine.MakeFlukaJCol: Making target jcol ", name)
@@ -1491,7 +1630,7 @@ class Machine(_Coordinates) :
         self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
 
         return self._MakeFlukaComponentCommonG4(name,outerLogical, outerPhysical, flukaConvert,
-                                                rotation, translation, geomtranslation, "jcol")
+                                                rotation, translation, geomtranslation, "jcol", False, prototype)
 
 
     def MakeFlukaShield(self,
@@ -1503,7 +1642,8 @@ class Machine(_Coordinates) :
                         cubicalbound=None,
                         trapezoidalbound=None,
                         geant4RegistryAdd=False,
-                        flukaConvert=True):
+                        flukaConvert=True,
+                        prototype=False):
 
         if self.verbose :
             print("pyflubl.BuilderNew.Machine.MakeFlukaShield: Making target shield ", name)
@@ -1564,7 +1704,7 @@ class Machine(_Coordinates) :
         self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
 
         return self._MakeFlukaComponentCommonG4(name,outerLogical, outerPhysical, flukaConvert,
-                                                rotation, translation, geomtranslation, "shield")
+                                                rotation, translation, geomtranslation, "shield", False, prototype)
 
 
     def MakeFlukaDump(self,
@@ -1576,7 +1716,8 @@ class Machine(_Coordinates) :
                       cubicalbound=None,
                       trapezoidalbound=None,
                       geant4RegistryAdd=False,
-                      flukaConvert=True):
+                      flukaConvert=True,
+                      prototype=False):
 
         if self.verbose :
             print("pyflubl.BuilderNew.Machine.MakeFlukaDump: Making dump ", name)
@@ -1614,7 +1755,7 @@ class Machine(_Coordinates) :
         self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
 
         return self._MakeFlukaComponentCommonG4(name,outerLogical, outerPhysical, flukaConvert,
-                                                rotation, translation, geomtranslation, "dump")
+                                                rotation, translation, geomtranslation, "dump", False, prototype)
 
 
     def MakeFlukaWireScanner(self,
@@ -1626,7 +1767,8 @@ class Machine(_Coordinates) :
                              cubicalbound=None,
                              trapezoidalbound=None,
                              geant4RegistryAdd=False,
-                             flukaConvert=True):
+                             flukaConvert=True,
+                             prototype=False):
 
         if self.verbose :
             print("pyflubl.BuilderNew.Machine.MakeFlukaWireScanner: Making wirescanner ", name)
@@ -1691,7 +1833,7 @@ class Machine(_Coordinates) :
         self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
 
         return self._MakeFlukaComponentCommonG4(name,outerLogical, outerPhysical, flukaConvert,
-                                                rotation, translation, geomtranslation, "wirescanner")
+                                                rotation, translation, geomtranslation, "wirescanner", False, prototype)
 
     def MakeFlukaGap(self,
                      name,
@@ -1702,7 +1844,8 @@ class Machine(_Coordinates) :
                      cubicalbound=None,
                      trapezoidalbound=None,
                      geant4RegistryAdd=False,
-                     flukaConvert=True):
+                     flukaConvert=True,
+                     prototype=False):
 
         if self.verbose :
             print("pyflubl.BuilderNew.Machine.MakeFlukaGap: Making target gap ", name)
@@ -1725,7 +1868,7 @@ class Machine(_Coordinates) :
         self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
 
         return self._MakeFlukaComponentCommonG4(name,outerLogical, outerPhysical, flukaConvert,
-                                                rotation, translation, geomtranslation, "gap")
+                                                rotation, translation, geomtranslation, "gap", False, prototype)
 
     def MakeFlukaSampler(self,
                          name,
@@ -1770,16 +1913,18 @@ class Machine(_Coordinates) :
                                                 rotation, translation, geomtranslation, "sampler")
 
     def MakeFlukaCustomG4(self,
-                         name,
-                         element,
-                         rotation = _np.array([[1,0,0],[0,1,0],[0,0,1],[0,0,0]]),
-                         translation = _np.array([0,0,0]),
-                         geomtranslation = _np.array([0,0,0]),
-                         cubicalbound = None,
-                         trapezoidalbound = None,
-                         geant4RegistryAdd = False,
-                         flukaConvert = True,
-                         material=None):
+                          name,
+                          element,
+                          rotation = _np.array([[1,0,0],[0,1,0],[0,0,1],[0,0,0]]),
+                          translation = _np.array([0,0,0]),
+                          geomtranslation = _np.array([0,0,0]),
+                          cubicalbound = None,
+                          trapezoidalbound = None,
+                          geant4RegistryAdd = False,
+                          flukaConvert = True,
+                          material=None,
+                          prototype=False
+                    ):
 
         # length
         length = element.length * 1000
@@ -1811,7 +1956,8 @@ class Machine(_Coordinates) :
                              cubicalbound=None,
                              trapezoidalbound=None,
                              geant4RegistryAdd=False,
-                             flukaConvert=True):
+                             flukaConvert=True,
+                             prototype=False):
 
         regionNamesTransferred = []
 
@@ -1851,6 +1997,210 @@ class Machine(_Coordinates) :
         self._AddBookkeepingTransformation(name, rotation, translation)
 
         self._MakeFlukaComponentCommonFluka(name, regionNamesTransferred, element.category)
+
+    def MakeFlukaLatticeInstance(self,
+                                 name,
+                                 element,
+                                 rotation = _np.array([[1,0,0],[0,1,0],[0,0,1],[0,0,0]]),
+                                 translation = _np.array([0,0,0]),
+                                 geomtranslation = _np.array([0,0,0]),
+                                 cubicalbound = None,
+                                 trapezoidalbound = None,
+                                 geant4RegistryAdd = False,
+                                 flukaConvert = True,
+                                 material=None):
+        if self.verbose :
+            print("pyflubl.BuilderNew.Machine.MakeFlukaLatticeInstance: Making lattice instance element ", name)
+
+        # add bookkeeping information for prototype
+        self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
+
+        if element['prototype'].name not in self.elementBookkeeping :
+            # create prototype at in the parking lot (at displaced location from normal beamline)
+            self.elementBookkeeping[element['prototype'].name] = {}
+
+            # advance prototype position based on length
+            self.prototype_position[2] += element['prototype'].length*100*1.5
+
+            self.ElementFactory(element['prototype'],
+                                _np.eye(3),
+                                _np.array(self.prototype_position)/100,
+                                _np.array(self.prototype_position)/100,
+                                cubicalbound,
+                                trapezoidalbound,
+                                geant4RegistryAdd,
+                                flukaConvert,
+                                True)
+
+            # need to set dummy S and real length
+            self.elementBookkeeping[element['prototype'].name]['S'] = -1.0
+            self.elementBookkeeping[element['prototype'].name]['length'] = element['prototype'].length
+
+        # create same body in accelerator
+        prototype_bki = self.elementBookkeeping[element['prototype'].name]
+        instance_bki = self.elementBookkeeping[element.name]
+
+        if 'outerPhysicalVolume' in prototype_bki: # Geant4 prototype
+            # get prototype bookkeeping information
+            pv_name = prototype_bki['outerPhysicalVolume']
+            pv = _copy.copy(self.g4registry.physicalVolumeDict[pv_name])  # get pv
+
+            # empty daughters as they do not need to be converted
+            pv.logicalVolume.daughterVolumes = []
+
+            # rotation as x aligned
+            rotation = rotation @ _tbxyz2matrix(pv.rotation.eval())
+
+            # convert geant4 outer to fluka
+            flukaouterregion, self.flukanamecount = _geant4PhysicalVolume2Fluka(pv,
+                                                                                mtra=rotation,
+                                                                                tra=geomtranslation,
+                                                                                flukaRegistry=self.flukaregistry,
+                                                                                flukaNameCount=self.flukanamecount,
+                                                                                bakeTransforms=self.bakeTransforms)
+
+            # cut volume out of mother zone
+            for daughterzones in flukaouterregion.zones:
+                self.worldzone.addSubtraction(daughterzones)
+
+            # make the assignma material vacuum
+            self.flukaregistry.assignmaAddMaterial(flukaouterregion.name, "VACUUM")
+
+            # create instance magnetic fields
+            if element['prototype'].category == "sbend" :
+
+                length = element['prototype'].length * 1000
+                angle = element['prototype']["angle"]
+
+                # calculate radius of curvature
+                rho = length / angle
+
+                # calculate field strength
+                b_field = self._CalculateDipoleFieldStrength(self.beam.momentum, rho)
+
+                # bookkeeping info for element
+                bki = self.elementBookkeeping[element.name]
+
+                # make field transform
+                translation = bki['translation']
+                rotation = _matrix2tbxyz(_np.linalg.inv(_np.array(bki['rotation'])))
+                rdi = _rotoTranslationFromTra2("TM" + format(self.flukamgncount, "03"), [rotation, translation])
+
+                if len(rdi) > 0:
+                    self._GetFlukaRegistry(flukaRegistryAdd=True).addRotoTranslation(rdi)
+
+                # make and assign field to region(s)
+                mgnname = "MG" + format(self.flukamgncount, "03")
+                mgnfield = _Mgnfield(strength=-b_field, rotDefini=rdi.name, applyRegion=0,
+                                     regionFrom=flukaouterregion.name, regionTo=None, regionStep=None,
+                                     sdum=mgnname)
+                self.AddMgnfield(mgnfield)
+
+                mgncreat = _Mgncreat(fieldType=_Mgncreat.DIPOLE, applicableRadius=0, xOffset=0, yOffset=0,
+                                     mirrorSymmetry=0, sdum=mgnname)
+                self.AddMgncreat(mgncreat)
+
+                # increment mgn count
+                self.flukamgncount += 1
+
+            elif element['prototype'].category == "rbend" :
+
+                length = element['prototype'].length * 1000
+                angle = element['prototype']["angle"]
+
+                # calculate radius of curvature
+                rho = length / (2 * _np.sin(angle / 2.))
+
+                # calculate field strength
+                b_field = self._CalculateDipoleFieldStrength(self.beam.momentum, rho)
+
+                # bookkeeping info for element
+                bki = self.elementBookkeeping[element.name]
+
+                # make field transform
+                translation = bki['translation']
+                rotation = _matrix2tbxyz(_np.linalg.inv(_np.array(bki['rotation'])))
+                rdi = _rotoTranslationFromTra2("TM" + format(self.flukamgncount, "03"), [rotation, translation])
+
+                if len(rdi) > 0:
+                    self._GetFlukaRegistry(flukaRegistryAdd=True).addRotoTranslation(rdi)
+
+                # make and assign field to region(s)
+                mgnname = "MG" + format(self.flukamgncount, "03")
+                mgnfield = _Mgnfield(strength=-b_field, rotDefini=rdi.name, applyRegion=0,
+                                     regionFrom=flukaouterregion.name, regionTo=None, regionStep=None,
+                                     sdum=mgnname)
+                self.AddMgnfield(mgnfield)
+
+                mgncreat = _Mgncreat(fieldType=_Mgncreat.DIPOLE, applicableRadius=0, xOffset=0, yOffset=0,
+                                     mirrorSymmetry=0, sdum=mgnname)
+                self.AddMgncreat(mgncreat)
+
+                # increment mgn count
+                self.flukamgncount += 1
+
+            elif element['prototype'].category == "quadrupole":
+
+                # calculate field strength
+                q_over_p = self.beam.charge / self.beam.momentum
+
+                # calculate fluka K
+                k1_fluka = element['prototype']['k1'] / q_over_p
+
+                # bookkeeping info for element
+                bki = self.elementBookkeeping[element.name]
+
+                # make field transform
+                translation = -_np.array(bki['translation'])
+                rotation = _matrix2tbxyz(_np.linalg.inv(_np.array(bki['rotation'])))
+                rdi = _rotoTranslationFromTra2("TM" + format(self.flukamgncount, "03"), [rotation, translation])
+
+                # add transformation to registry
+                if len(rdi) > 0 :
+                    self._GetFlukaRegistry(flukaRegistryAdd=True).addRotoTranslation(rdi)
+
+                # make and assign field to region(s)
+                mgnname = "MG"+format(self.flukamgncount, "03")
+                mgnfield = _Mgnfield(strength=-k1_fluka,rotDefini=rdi.name, applyRegion=0,
+                                     regionFrom=flukaouterregion.name, regionTo=None, regionStep=None,
+                                     sdum = mgnname)
+                self.AddMgnfield(mgnfield)
+
+                mgncreat = _Mgncreat(fieldType=_Mgncreat.QUADRUPOLE, applicableRadius=0, xOffset=0, yOffset=0, mirrorSymmetry=0, sdum=mgnname)
+                self.AddMgncreat(mgncreat)
+
+                # increment mgn count
+                self.flukamgncount += 1
+
+            # book keeping information for the instance
+            instance_bki['category']     = element.category
+            instance_bki['outerRegion']  = flukaouterregion.name
+            instance_bki['outerBody']    = flukaouterregion.zones[0].intersections[0].body.name  # TODO check if this is generally corrrect
+            instance_bki['flukaRegions'] = [self.flukaregistry.PhysVolToRegionMap[pv.name]]
+
+        else : # must be a fluka prototype
+            pass
+
+        # create transformation from prototype to instance
+        trans_to_prototype   = prototype_bki['geomtranslation']
+        trans_to_instance    = instance_bki['geomtranslation']
+        rotation_to_instance = instance_bki['rotation'] # assumes prototypes in parking space is without rotation
+
+        rotation    = _matrix2tbxyz(_np.linalg.inv(_np.array(rotation_to_instance)))
+
+        rdi = _rotoTranslationFromTra2("TL"+format(self.flukalatcount, "03"),[[0,0,0], -_np.array(trans_to_instance)])
+        rdi2 = _rotoTranslationFromTra2("TL"+format(self.flukalatcount, "03"),[rotation, [0,0,0]])
+        rdi3 = _rotoTranslationFromTra2("TL"+format(self.flukalatcount, "03"),[[0,0,0], _np.array(trans_to_prototype)])
+        rdi.extend(rdi2)
+        rdi.extend(rdi3)
+        self._GetFlukaRegistry(flukaRegistryAdd=True).addRotoTranslation(rdi)
+
+        # create lattice card to link the two regions
+        self.AddLattice(_Lattice(prototype_bki['outerBody'],instance_bki['outerRegion'], rotDefiName=rdi.name))
+
+        # increment internal counter
+        self.flukalatcount += 1
+
 
     def _GetGeant4Registry(self,geant4RegistryAdd = False) :
         if geant4RegistryAdd:
@@ -1905,7 +2255,8 @@ class Machine(_Coordinates) :
 
     def _MakeFlukaComponentCommonG4(self, name, containerLV, containerPV, flukaConvert,
                                     rotation, translation, geomtranslation, category,
-                                    convertMaterials = False):
+                                    convertMaterials = False,
+                                    prototype = False):
         # convert materials
         if convertMaterials:
             print("_MakeFlukaComponentCommon> convertMaterials")
@@ -1923,9 +2274,13 @@ class Machine(_Coordinates) :
                                                                                 flukaNameCount=self.flukanamecount,
                                                                                 bakeTransforms=self.bakeTransforms)
 
+
             # cut volume out of mother zone
             for daughterzones in flukaouterregion.zones:
-                self.worldzone.addSubtraction(daughterzones)
+                if not prototype :
+                    self.worldzone.addSubtraction(daughterzones)
+                else :
+                    self.parkingzone.addSubtraction(daughterzones)
 
         # make bookkeeping information
         if name not in self.elementBookkeeping :
@@ -1937,6 +2292,10 @@ class Machine(_Coordinates) :
         physicalVolumeNames = containerLV.makeLogicalPhysicalNameSets()[1]
         physicalVolumeNames.add(containerPV.name)
         self.elementBookkeeping[name]['physicalVolumes'] = list(physicalVolumeNames)
+        self.elementBookkeeping[name]['outerPhysicalVolume'] = containerPV.name
+        self.elementBookkeeping[name]['outerRegion'] = flukaouterregion.name # TODO check if this is generally corrrect
+        self.elementBookkeeping[name]['outerBody'] = flukaouterregion.zones[0].intersections[0].body.name # TODO check if this is generally corrrect
+
         try:
             self.elementBookkeeping[name]['flukaRegions'] = [self.flukaregistry.PhysVolToRegionMap[pv] for pv in
                                                              self.elementBookkeeping[name]['physicalVolumes']]

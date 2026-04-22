@@ -23,7 +23,7 @@ def plot(data):
     elif type(data) == Usrdump :
         plot_usrdump(data)
 
-def plot_usrdump(ud, projection = "xz", linewidth=1):
+def plot_usrdump(ud, projection = "xz", linewidth=1, markersize=1):
 
     if projection == "xz":
         axis1 = 0
@@ -53,8 +53,8 @@ def plot_usrdump(ud, projection = "xz", linewidth=1):
                   linewidth=linewidth)
         _plt.plot([10*t[axis1],10*t[axis1+3]], [10*t[axis2],10*t[axis2+3]],
                   "o",
+                  markersize=markersize,
                   color=(0, 0, 0))
-    #_plt.show()
 
 def plot_usrbin(ub, detector_idx = 0, projection = 0, cmap = "Greens",
                 rotmatrix = _np.array([[1,0,0],[0,1,0],[0,0,1]]),
