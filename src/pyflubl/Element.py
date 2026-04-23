@@ -110,7 +110,7 @@ class Element(ElementBase):
     _customg4_allowed_keys = ["customLV","convertMaterials"]
     _customg4file_allowed_keys = ["geometryFile","lvName"]
     _customfluka_allowed_keys = ["customOuterBodies", "customRegions", "flukaRegistry"]
-    _customflukafile_allowed_keys = ["geometryFile", "customOuterBodies", "customRegions"]
+    _customflukafile_allowed_keys = ["geometryFile", "customOuterRegion", "customOuterBodies", "customRegions"]
     _sampler_plane_allowed_keys = ["samplerDiameter", "samplerMaterial", "samplerLength"]
 
     def __init__(self, name = "element", category = None, length = 0.0,

@@ -317,7 +317,8 @@ class Machine(_Coordinates) :
     def AddCustomFluka(self, name, length, add=True, **kwargs):
         allowed_keys = _Element._outer_allowed_keys +\
                        _Element._customfluka_allowed_keys + \
-                       _Element._customflukafile_allowed_keys
+                       _Element._customflukafile_allowed_keys + \
+                       _Element._tiltshift_allowed_keys
         self._CheckElementKwargs(kwargs,allowed_keys)
         self._SetDefaultElementKwargs(kwargs, allowed_keys)
 
@@ -331,36 +332,75 @@ class Machine(_Coordinates) :
 
     def AddCustomFlukaFile(self, name, length, add=True, **kwargs):
         allowed_keys = _Element._outer_allowed_keys + \
-                       _Element._customflukafile_allowed_keys
-        self._CheckElementKwargs(kwargs,_Element._customflukafile_allowed_keys)
+                       _Element._customflukafile_allowed_keys + \
+                       _Element._tiltshift_allowed_keys
+        self._CheckElementKwargs(kwargs,allowed_keys)
         self._SetDefaultElementKwargs(kwargs, allowed_keys)
 
         geometry_file = kwargs['geometryFile']
+        outer_region = kwargs['customOuterRegion']
         outer_bodies = kwargs['customOuterBodies']
-        region_names = kwargs['customRegions']
+        regions = kwargs['customRegions']
 
         reader = _pyg4.fluka.Reader(geometry_file)
         registry = reader.getRegistry()
+
+        i_body_rename = 0
+        i_region_rename = 0
+
+        # rename bodies
+        outer_bodies_rename = []
+        regions_rename = []
+
+        # rename bodies
+        for k in list(registry.bodyDict.keys()):
+            new_name = name.upper()+format(i_body_rename, "03")
+            if k in outer_bodies :
+                outer_bodies_rename.append(new_name)
+            registry.bodyDict[k].name = new_name
+            registry.bodyDict[new_name] = registry.bodyDict.pop(k)
+            i_body_rename += 1
+        outer_bodies = outer_bodies_rename
+
+        # rename regions
+        for k in list(registry.regionDict.keys()):
+            new_name = name.upper()+format(i_region_rename, "03")
+            if k in regions :
+                regions_rename.append(new_name)
+            if k == outer_region :
+                outer_region = new_name
+            registry.regionDict[k].name = new_name
+            registry.regionDict[new_name] = registry.regionDict.pop(k)
+            i_region_rename += 1
+
+            # fix the assignmas too
+            assignma = list(registry.assignmas.pop(k))
+            registry.assignmas[new_name] = assignma
+
+        regions = regions_rename
 
         if isinstance(outer_bodies, str) :
             outer_bodies = [registry.bodyDict[k] for k in outer_bodies.split()]
         elif isinstance(outer_bodies, list) :
             outer_bodies = [registry.bodyDict[k] for k in outer_bodies]
 
-        if isinstance(region_names, str) :
-            regions = [registry.regionDict[k] for k in region_names.split()]
-        elif isinstance(region_names, list) :
-            regions = [registry.regionDict[k] for k in region_names]
+        if isinstance(regions, str) :
+            regions = [registry.regionDict[k] for k in regions.split()]
+        elif isinstance(regions, list) :
+            regions = [registry.regionDict[k] for k in regions]
+
+        outer_region = registry.regionDict[outer_region]
 
         kwargs['geometryFile'] = geometry_file
+        kwargs['customOuterRegion'] = outer_region
         kwargs['customOuterBodies'] = outer_bodies
         kwargs['customRegions'] = regions
 
-        self.AddCustomFluka(name,
-                            length,
-                            flukaRegistry=registry,
-                            add=add,
-                            **kwargs)
+        return self.AddCustomFluka(name,
+                                   length,
+                                   flukaRegistry=registry,
+                                   add=add,
+                                   **kwargs)
 
     def AddLatticeInstance(self, name, prototypeName):
         e = _Element(name=name,
@@ -1957,7 +1997,7 @@ class Machine(_Coordinates) :
                                                         outerLogical,
                                                         g4registry)
 
-        # take LV as outer
+        # take custom LV as outer
         outerLogical = customContainerLV
         outerPhysical = customContainerPV
 
@@ -1976,8 +2016,11 @@ class Machine(_Coordinates) :
                              flukaConvert=True,
                              prototype=False):
 
+        rotation, translation = self._MakeOffsetAndTiltTransforms(element, rotation, translation)
+
         regionNamesTransferred = []
 
+        outer_region  = element['customOuterRegion']
         outer_bodies  = element["customOuterBodies"]
         regions       = element["customRegions"]
         flukaRegistry = element['flukaRegistry']
@@ -1987,7 +2030,10 @@ class Machine(_Coordinates) :
             for body in outer_bodies:
                 z = _pyg4.fluka.Zone()
                 z.addIntersection(body)
-                self.worldzone.addSubtraction(z)
+                if not prototype :
+                    self.worldzone.addSubtraction(z)
+                else :
+                    self.parkingzone.addSubtraction(z)
 
             # transfer bodies and regions to fluka registry
             for region in regions:
@@ -2011,7 +2057,7 @@ class Machine(_Coordinates) :
                 mat = fluka_registry.assignmas[region.name]
                 self._GetFlukaRegistry(True).addMaterialAssignments(mat[0],region.name)
 
-        self._AddBookkeepingTransformation(name, rotation, translation)
+        self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
 
         self._MakeFlukaComponentCommonFluka(name, regionNamesTransferred, element.category)
 
@@ -2032,6 +2078,7 @@ class Machine(_Coordinates) :
         # add bookkeeping information for prototype
         self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
 
+        # make the prototype if it not found in the book keeping information
         if element['prototype'].name not in self.elementBookkeeping :
             # create prototype at in the parking lot (at displaced location from normal beamline)
             self.elementBookkeeping[element['prototype'].name] = {}
@@ -2057,7 +2104,8 @@ class Machine(_Coordinates) :
         prototype_bki = self.elementBookkeeping[element['prototype'].name]
         instance_bki = self.elementBookkeeping[element.name]
 
-        if 'outerPhysicalVolume' in prototype_bki: # Geant4 prototype
+        # Geant4 prototype
+        if 'outerPhysicalVolume' in prototype_bki:
             # get prototype bookkeeping information
             pv_name = prototype_bki['outerPhysicalVolume']
             pv = _copy.copy(self.g4registry.physicalVolumeDict[pv_name])  # get pv
@@ -2119,7 +2167,6 @@ class Machine(_Coordinates) :
 
                 # increment mgn count
                 self.flukamgncount += 1
-
             elif element['prototype'].category == "rbend" :
 
                 length = element['prototype'].length * 1000
@@ -2155,7 +2202,6 @@ class Machine(_Coordinates) :
 
                 # increment mgn count
                 self.flukamgncount += 1
-
             elif element['prototype'].category == "quadrupole":
 
                 # calculate field strength
@@ -2194,9 +2240,45 @@ class Machine(_Coordinates) :
             instance_bki['outerRegion']  = flukaouterregion.name
             instance_bki['outerBody']    = flukaouterregion.zones[0].intersections[0].body.name  # TODO check if this is generally corrrect
             instance_bki['flukaRegions'] = [self.flukaregistry.PhysVolToRegionMap[pv.name]]
+        # must be a fluka prototype
+        else :
 
-        else : # must be a fluka prototype
-            pass
+            # TODO should this be in creating the fluka custom method
+            prototype_bki['category']     = element['prototype'].category
+            prototype_bki['outerRegion']  = element['prototype']['customOuterRegion'].name
+            prototype_bki['outerBody']    = element['prototype']['customOuterBodies'][0].name
+            prototype_bki['flukaRegions'] = [r.name for r in element['prototype']['customRegions']]
+
+            # create outer body in correct location
+            outer_body = _copy.deepcopy(element['prototype']['customOuterBodies'][0])
+            # rename outer_body
+            outer_body.name = element.name.upper()
+            outer_body = outer_body._transform(rotation, translation)
+            outer_body._scale(0.1)
+
+            # subtract from world
+            zone = _pyg4.fluka.Zone()
+            zone.addIntersection(outer_body)
+            self.worldzone.addSubtraction(zone)
+
+            # create region
+            instance_region = _pyg4.fluka.Region(element.name.upper())
+            zone = _pyg4.fluka.Zone()
+            zone.addIntersection(outer_body)
+            instance_region.addZone(zone)
+
+            # add transformed lattice region body to fluka registry
+            self.flukaregistry.addBody(outer_body)
+
+            # add lattice region to fluka registry
+            self.flukaregistry.addRegion(instance_region)
+
+            instance_bki['outerBody'] = outer_body.name
+            instance_bki['outerRegion'] = instance_region.name
+            instance_bki['flukaRegions'] = [instance_region.name]
+            instance_bki['rotation'] = rotation.tolist()
+            instance_bki['translation'] = translation.tolist()
+            instance_bki['geomtranslation'] = geomtranslation.tolist()
 
         # create transformation from prototype to instance
         trans_to_prototype   = prototype_bki['geomtranslation']

@@ -1,0 +1,42 @@
+TITLE
+
+*Set the defaults for precision simulations
+DEFAULTS                                                              PRECISIO
+*Define the beam characteristics
+BEAM
+*Define the beam position
+BEAMPOS
+GEOBEGIN                                                              COMBNAME
+    0    0          
+BOX OUTER      -38.0 -25.0 -50.0 57.0 0 0 0 50.0 0 0 0 100.0
+BOX BLCKHOLE   -125.0 -125.0 -125.0 250.0 0 0 0 250.0 0 0 0 250.0
+RPP Y_UP       -25.0 5.0 13.0 23.0 -49.0 49.0
+RPP Y_DOWN     -25.0 5.0 -23.0 -13.0 -49.0 49.0
+RPP Y_SIDE     -30.0 -17.5 -23.0 23.0 -49.0 49.0
+RPP P_DOWN     -5.0 5.0 -15.0 -5.0 -49 49
+RPP P_UP       -5.0 5.0 5.0 15.0 -49.0 49.0
+RCC BP_OUTER   0 0 -50 0 0 100 4.9
+RCC BP_VACUU   0 0 -50 0 0 100 4.4
+END
+BLCKHOLE     5 +BLCKHOLE -OUTER
+OUTER        5 +OUTER -Y_UP -Y_DOWN -Y_SIDE -P_DOWN -P_UP -BP_OUTER
+YOKE         5 +Y_UP
+               | +Y_DOWN
+               | +Y_SIDE
+               | +P_DOWN
+               | +P_UP
+BP           5 +BP_OUTER -BP_VACUU
+VACUUM       5 +BP_VACUU
+END
+GEOEND
+*..+....1....+....2....+....3....+....4....+....5....+....6....+....7..
+*Set the random number seed
+RANDOMIZ         1.0
+ASSIGNMA    BLCKHOLE  BLCKHOLE
+ASSIGNMA         AIR     OUTER
+ASSIGNMA        IRON      YOKE
+ASSIGNMA    BERYLLIU        BP
+ASSIGNMA      VACUUM    VACUUM
+*Set the number of primary histories to be simulated in the run
+START
+STOP
