@@ -1,4 +1,4 @@
-el: rbend, l=0.5*m, angle=0.02, outerDiameter=40*cm;
+el: rbend, l=1.0*m, angle=0.02, outerDiameter=40*cm;
 l1: line = (el);
 
 use, l1;
