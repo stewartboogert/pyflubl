@@ -113,6 +113,7 @@ def make_T035_Element_Fluka() :
     reader = _pyg4.fluka.Reader(this_dir+"/geometryInput/test_T035_Custom_Fluka_Gap.inp")
     registry = reader.getRegistry()
 
+    outer_region = registry.regionDict['OUTER']
     outer_bodies = [registry.bodyDict[k] for k in ['outer']]
     regions = [registry.regionDict[k] for k in ['OUTER','SHIELD','BEAM','TARGET']]
 
@@ -126,6 +127,7 @@ def make_T035_Element_Fluka() :
     m.AddSamplerPlane(name="s2", length=1e-6)
     m.AddCustomFluka(name="c1",
                      length=1,
+                     customOuterRegion = outer_region,
                      customOuterBodies = outer_bodies,
                      customRegions = regions,
                      flukaRegistry = registry)
@@ -170,6 +172,7 @@ def make_T035_Element_Fluka_File() :
     m.AddSamplerPlane(name="s2", length=1e-6)
     m.AddCustomFlukaFile(name="c1", length=1,
                          geometryFile=this_dir+"/geometryInput/test_T035_Custom_Fluka_Gap.inp",
+                         customOuterRegion='OUTER',
                          customOuterBodies= ['outer'],
                          customRegions=['OUTER','SHIELD','BEAM','TARGET'])
     m.AddSamplerPlane(name="s3", length=1e-6)
@@ -214,12 +217,14 @@ def make_T035_Element_Fluka_RBend() :
     m.AddSamplerPlane(name="s2", length=1e-6)
     m.AddCustomFlukaFile(name="c1", length=1,
                          geometryFile=this_dir+"/geometryInput/test_T035_Custom_Fluka_RBend.inp",
+                         customOuterRegion='OUTER',
                          customOuterBodies= ['OUTER'],
                          customRegions=['OUTER','YOKE','BP','VACUUM'])
     m.AddSamplerPlane(name="s3", length=1e-6)
     m.AddDrift(name="d5", length=1)
     m.AddCustomFlukaFile(name="c2", length=1,
                          geometryFile=this_dir+"/geometryInput/test_T035_Custom_Fluka_RBend.inp",
+                         customOuterRegion='OUTER',
                          customOuterBodies= ['OUTER'],
                          customRegions=['OUTER','YOKE','BP','VACUUM'],
                          tilt=_np.pi/2)
