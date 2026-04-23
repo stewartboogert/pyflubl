@@ -462,7 +462,7 @@ def make_T051_Lattice_CustomFlukaFile() :
     m.AddLatticeInstance("c1i3","c1")
     m.AddDrift(name="d4",length=1)
 
-    m.Write(this_dir+"/T051_Lattice_FlukaCustomFile")
+    m.Write(this_dir+"/T051_Lattice_CustomFlukaFile")
 
     return m
 
