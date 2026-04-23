@@ -312,7 +312,7 @@ class Machine(_Coordinates) :
         reader = _pyg4.gdml.Reader(geometry_file, registryIn = g4registry)
         lv = g4registry.logicalVolumeDict[lv_name]
 
-        self.AddCustomG4(name,length, containerLV = lv, add=add, **kwargs)
+        return self.AddCustomG4(name,length, containerLV = lv, add=add, **kwargs)
 
     def AddCustomFluka(self, name, length, add=True, **kwargs):
         allowed_keys = _Element._outer_allowed_keys +\
