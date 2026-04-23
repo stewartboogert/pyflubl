@@ -466,3 +466,5 @@ def make_T051_Lattice_CustomFlukaFile() :
 
     return m
 
+def test_T051_Lattice_CustomFlukaFile() :
+    make_T051_Lattice_CustomFlukaFile()
