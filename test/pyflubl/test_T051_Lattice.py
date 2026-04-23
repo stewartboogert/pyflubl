@@ -457,9 +457,9 @@ def make_T051_Lattice_CustomFlukaFile() :
     m.AddDrift(name="d1",length=1)
     m.AddLatticeInstance("c1i1","c1")
     m.AddDrift(name="d2",length=1)
-    m.AddLatticeInstance("c1i2","c1")
+    m.AddLatticeInstance("c1i2","c1", tilt=_np.pi/2)
     m.AddDrift(name="d3",length=1)
-    m.AddLatticeInstance("c1i3","c1")
+    m.AddLatticeInstance("c1i3","c1", tilt=_np.pi/4, offsetX=50)
     m.AddDrift(name="d4",length=1)
 
     m.Write(this_dir+"/T051_Lattice_CustomFlukaFile")
@@ -468,3 +468,67 @@ def make_T051_Lattice_CustomFlukaFile() :
 
 def test_T051_Lattice_CustomFlukaFile() :
     make_T051_Lattice_CustomFlukaFile()
+
+def make_T051_Lattice_CustomFlukaFile_Bend() :
+    this_dir = _os.path.dirname(_os.path.abspath(__file__))
+
+    m = _pfbl.BuilderNew.Machine(bakeTransforms=True)
+
+    d = _pfbl.Fluka.Defaults('EM-CASCA')
+    m.AddDefaults(d)
+
+    b = _pfbl.Fluka.Beam(momentumOrKe=1, energySpread=0.0, sdum="ELECTRON")
+    bp = _pfbl.Fluka.Beampos(xCentre=0, yCentre=0, zCentre=0, xCosine=0, yCosine=0)
+    ba = _pfbl.Fluka.BeamAxes(xxCosine=1, xyCosine=0, xzCosine=0,
+                              zxCosine=0, zyCosine=0, zzCosine=1)
+    m.AddBeam(b)
+    m.AddBeampos(bp)
+    m.AddBeamaxes(ba)
+
+    r = _pfbl.Fluka.Randomiz()
+    m.AddRandomiz(r)
+
+    s = _pfbl.Fluka.Start(10)
+    m.AddStart(s)
+
+    uic = _pfbl.Fluka.Usricall()
+    m.AddUsricall(uic)
+
+    uoc = _pfbl.Fluka.Usrocall()
+    m.AddUsrocall(uoc)
+
+    ud = _pfbl.Fluka.Userdump(mgdraw=100,lun=23,mgdrawOption=-1,userDump=None, outputFile="dump")
+    m.AddUserdump(ud)
+
+    # set world material
+    m.world_material = "VACUUM"
+
+    cf = m.AddCustomFlukaFile(name="c1", length=1,
+                              geometryFile=this_dir+"/geometryInput/test_T035_Custom_Fluka_RBend.inp",
+                              customOuterRegion='OUTER',
+                              customOuterBodies=['OUTER'],
+                              customRegions=['OUTER','YOKE','BP','VACUUM'],
+                              add=False)
+
+    m.AddLatticePrototype(cf)
+
+    m.AddDrift(name="d1",length=1)
+    m.AddSBend(name="sb1",length=1, angle=5/180.*_np.pi)
+    m.AddDrift(name="d2",length=1)
+    m.AddSBend(name="sb2",length=1, angle=5/180.*_np.pi)
+    m.AddDrift(name="d3",length=1)
+
+    m.AddLatticeInstance("c1i1","c1")
+    m.AddDrift(name="d4",length=1)
+    m.AddLatticeInstance("c1i2","c1", tilt=_np.pi/2)
+    m.AddDrift(name="d5",length=1)
+    m.AddLatticeInstance("c1i3","c1", tilt=_np.pi/4, offsetX=50)
+    m.AddDrift(name="d6",length=1)
+
+    m.Write(this_dir+"/T051_Lattice_CustomFlukaFile_Bend")
+
+    return m
+
+def test_T051_Lattice_CustomFlukaFile_Bend() :
+    make_T051_Lattice_CustomFlukaFile_Bend()
+

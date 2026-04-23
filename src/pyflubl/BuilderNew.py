@@ -402,11 +402,18 @@ class Machine(_Coordinates) :
                                    add=add,
                                    **kwargs)
 
-    def AddLatticeInstance(self, name, prototypeName):
+    def AddLatticeInstance(self, name, prototypeName, **kwargs):
+
+        allowed_keys = _Element._tiltshift_allowed_keys
+        self._CheckElementKwargs(kwargs,allowed_keys)
+        self._SetDefaultElementKwargs(kwargs, allowed_keys)
+
+
         e = _Element(name=name,
                      category="lattice_instance",
                      length=self.prototypes[prototypeName]['element'].length,
-                     prototype = self.prototypes[prototypeName]['element'])
+                     prototype = self.prototypes[prototypeName]['element'],
+                     **kwargs)
         self.Append(e)
         return e
 
@@ -2075,6 +2082,12 @@ class Machine(_Coordinates) :
         if self.verbose :
             print("pyflubl.BuilderNew.Machine.MakeFlukaLatticeInstance: Making lattice instance element ", name)
 
+
+        # tilt and shift transforms
+        geomtranslation = geomtranslation +  rotation @ _np.array([element['offsetX'], element['offsetY'], 0])
+
+        rotation, translation = self._MakeOffsetAndTiltTransforms(element, rotation, translation)
+
         # add bookkeeping information for prototype
         self._AddBookkeepingTransformation(name, rotation, translation, geomtranslation)
 
@@ -2253,7 +2266,7 @@ class Machine(_Coordinates) :
             outer_body = _copy.deepcopy(element['prototype']['customOuterBodies'][0])
             # rename outer_body
             outer_body.name = element.name.upper()
-            outer_body = outer_body._transform(rotation, translation)
+            outer_body = outer_body._transform(rotation, geomtranslation)
             outer_body._scale(0.1)
 
             # subtract from world
