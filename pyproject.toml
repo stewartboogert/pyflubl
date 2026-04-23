@@ -27,7 +27,8 @@ maintainers = [
 ]
 dependencies = [
     "pyg4ometry",
-    "pybdsim"
+    "pybdsim",
+    "pydantic"
 ]
 
 [project.optional-dependencies]
