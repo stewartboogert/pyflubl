@@ -259,11 +259,14 @@ def make_T035_Element_BDSIM_RBend() :
     m.AddStart(s)
 
     m.AddCustomG4File(name="rb1",
-                      length=1.5,
+                      length=1.0,
                       geometryFile=this_dir+"/../bdsim/02_rbend.gdml",
-                      lvName="el_centre_container_lv0x60000270fa20")
+                      lvName="el_centre_container_lv0x600000caa800")
 
     m.Write(this_dir+"/T035_Element_BDSIM_RBend")
+
+def test_T035_Element_BDSIM_RBend() :
+    make_T035_Element_BDSIM_RBend()
 
 if __name__ == "__main__":
     test_T035_Element_G4()
