@@ -1,0 +1,33 @@
+TITLE
+
+*Set the defaults for precision simulations
+DEFAULTS                                                              PRECISIO
+*Define the beam characteristics
+BEAM
+*Define the beam position
+BEAMPOS
+GEOBEGIN                                                              COMBNAME
+    0    0          
+BOX BLCKHOLE   -250.0 250.0 -250.0 0 0 500.0 500.0 0 0 0 -500.0 0
+BOX OUTER      -50.0 50.0 -50.0 0 0 100.0 100.0 0 0 0 -100.0 0
+YZP T_XDOWN    -30.0
+YZP T_XUP      -10.0
+XYP T_ZDOWN    -30.0
+XYP T_ZUP      -10.0
+XZP T_YDOWN    -30.0
+XZP T_YUP      -10.0
+END
+BLCKHOLE     5 +BLCKHOLE -OUTER
+OUTER        5 +OUTER -(T_XUP -T_XDOWN +T_YUP -T_YDOWN +T_ZUP -T_ZDOWN)
+TARGET       5 +T_XUP -T_XDOWN +T_YUP -T_YDOWN +T_ZUP -T_ZDOWN
+END
+GEOEND
+*..+....1....+....2....+....3....+....4....+....5....+....6....+....7..
+*Set the random number seed
+RANDOMIZ         1.0
+ASSIGNMA    BLCKHOLE  BLCKHOLE
+ASSIGNMA      VACUUM     OUTER
+ASSIGNMA    MAGNESIU    TARGET
+*Set the number of primary histories to be simulated in the run
+START
+STOP
