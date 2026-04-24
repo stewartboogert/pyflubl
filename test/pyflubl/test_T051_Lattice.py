@@ -568,7 +568,7 @@ def make_T051_Lattice_CustomG4File_RBend() :
 
     g4 = m.AddCustomG4File(name="g4",
                            length=1.0,
-                           geometryFile=this_dir+"/../bdsim/02_rbend.gdml",
+                           geometryFile=this_dir+"/../bdsim/geometry/02_rbend.gdml",
                            lvName="el_centre_container_lv0x600000caa800",
                            add=False)
 
@@ -618,7 +618,7 @@ def make_T051_Lattice_CustomG4File_Quad() :
 
     g4 = m.AddCustomG4File(name="g4",
                            length=0.25,
-                           geometryFile=this_dir+"/../bdsim/04_quad.gdml",
+                           geometryFile=this_dir+"/../bdsim/geometry/04_quad.gdml",
                            lvName="el_container_lv0x6000015d3340",
                            add=False)
 

@@ -260,7 +260,7 @@ def make_T035_Element_BDSIM_RBend() :
 
     m.AddCustomG4File(name="rb1",
                       length=1.0,
-                      geometryFile=this_dir+"/../bdsim/02_rbend.gdml",
+                      geometryFile=this_dir+"/../bdsim/geometry/02_rbend.gdml",
                       lvName="el_centre_container_lv0x600000caa800")
 
     m.Write(this_dir+"/T035_Element_BDSIM_RBend")
@@ -293,7 +293,7 @@ def make_T035_ELement_BDSIM_Quad() :
 
     m.AddCustomG4File(name="q1",
                       length=0.25,
-                      geometryFile=this_dir+"/../bdsim/04_quad.gdml",
+                      geometryFile=this_dir+"/../bdsim/geometry/04_quad.gdml",
                       lvName="el_container_lv0x6000015d3340")
 
     m.Write(this_dir+"/T035_Element_BDSIM_Quad")
