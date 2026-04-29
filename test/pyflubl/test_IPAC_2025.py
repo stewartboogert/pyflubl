@@ -3,6 +3,9 @@ import pyg4ometry as _pyg4
 import numpy as _np
 import os as _os
 
+from pydantic.v1.json import custom_pydantic_encoder
+
+
 def IPAC_2025() :
 
     this_dir = _os.path.dirname(_os.path.abspath(__file__))
@@ -47,6 +50,7 @@ def IPAC_2025() :
     m.AddSamplerPlane(name="s1", length=10e-6)
     m.AddCustomFlukaFile(name="c1", length=1.000,
                          geometryFile=this_dir+"/geometryInput/test_T035_Custom_Fluka_Gap.inp",
+                         customOuterRegion='OUTER',
                          customOuterBodies= ['outer'],
                          customRegions=['OUTER','SHIELD','BEAM','TARGET'])
 

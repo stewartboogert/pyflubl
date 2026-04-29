@@ -1,4 +1,4 @@
-el: quadrupole, l=0.5*m, outerDiameter=40*cm;
+el: drift, l=1.0*m, outerDiameter=40*cm;
 l1: line = (el);
 
 use, l1;
