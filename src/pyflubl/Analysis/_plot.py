@@ -198,7 +198,11 @@ def plot_coordinates(coordinates) :
 
     _plt.tight_layout()
 
-def plot_coordinates_projection(coordinates, projection = "zx") :
+def plot_coordinates_projection(coordinates,
+                                projection = "zx",
+                                plotCoordinateMarkers = True,
+                                plotFilledElements = True,
+                                plotNormals = True) :
 
     if projection == "xz":
         axis1 = 0
@@ -245,14 +249,19 @@ def plot_coordinates_projection(coordinates, projection = "zx") :
 
         bp = coordinates.tra[i]*1000
 
-        _plt.plot(ast[axis1],ast[axis2],"o",markerfacecolor='none',markeredgecolor='blue')
-        _plt.plot(cs[axis1],cs[axis2],"o",markerfacecolor='none', markeredgecolor='blue')
+        if plotCoordinateMarkers :
+            markersize = 1.0
+        else :
+            markersize = 0.0
 
-        _plt.plot(ae[axis1],ae[axis2],"o", markerfacecolor='red', markeredgecolor='red')
-        _plt.plot(ce[axis1],ce[axis2],"o", markerfacecolor='red', markeredgecolor='red')
+        _plt.plot(ast[axis1],ast[axis2],"o", markersize=markersize, markerfacecolor='none',markeredgecolor='blue')
+        _plt.plot(cs[axis1],cs[axis2],"o", markersize=markersize, markerfacecolor='none', markeredgecolor='blue')
 
-        _plt.plot(am[axis1],am[axis2],"+", markeredgecolor='green')
-        _plt.plot(cm[axis1],cm[axis2],"x", markeredgecolor='green')
+        _plt.plot(ae[axis1],ae[axis2],"o", markersize=markersize,  markerfacecolor='red', markeredgecolor='red')
+        _plt.plot(ce[axis1],ce[axis2],"o", markersize=markersize,  markerfacecolor='red', markeredgecolor='red')
+
+        _plt.plot(am[axis1],am[axis2],"+", markersize=markersize,  markeredgecolor='green')
+        _plt.plot(cm[axis1],cm[axis2],"x", markersize=markersize,  markeredgecolor='green')
 
         if coordinates.element_category[i] == "drift" :
             bp_facecolor = 'black'
@@ -270,18 +279,23 @@ def plot_coordinates_projection(coordinates, projection = "zx") :
             bp_facecolor = 'green'
             bp_facealpha = 0.5
 
+        if not plotFilledElements :
+            bp_facecolor = 'white'
+
         bounding_poly = _makeBoundingPolygon(bp[:,[axis1,axis2]],
                                              facecolor = bp_facecolor,
                                              facealpha = bp_facealpha)
+
         _plt.gca().add_patch(bounding_poly)
 
-        fac_sta_arrow = _makeVectorArrow([cs[axis1], cs[axis2]], [fi[axis1],fi[axis2]],500., 0,
-                                         color="blue")
-        _plt.gca().add_patch(fac_sta_arrow)
+        if plotNormals :
+            fac_sta_arrow = _makeVectorArrow([cs[axis1], cs[axis2]], [fi[axis1],fi[axis2]],500., 0,
+                                             color="blue")
+            _plt.gca().add_patch(fac_sta_arrow)
 
-        fac_end_arrow = _makeVectorArrow([ce[axis1], ce[axis2]], [fe[axis1],fe[axis2]], 500.0, 0,
-                                         color="red")
-        _plt.gca().add_patch(fac_end_arrow)
+            fac_end_arrow = _makeVectorArrow([ce[axis1], ce[axis2]], [fe[axis1],fe[axis2]], 500.0, 0,
+                                             color="red")
+            _plt.gca().add_patch(fac_end_arrow)
 
     labels = ["x/mm", "y/mm", "z/mm"]
     _plt.xlabel(labels[axis1])
