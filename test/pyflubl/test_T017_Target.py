@@ -21,7 +21,7 @@ def make_T017_target_circular() :
     r = _pfbl.Fluka.Randomiz()
     m.AddRandomiz(r)
 
-    s = _pfbl.Fluka.Start(10)
+    s = _pfbl.Fluka.Start(500)
     m.AddStart(s)
 
     uic = _pfbl.Fluka.Usricall()
@@ -34,7 +34,7 @@ def make_T017_target_circular() :
     m.AddUsrocall(uoc)
 
     m.AddDrift(name="d1", length=1)
-    m.AddTarget(name="t1", length=1,
+    m.AddTarget(name="t1", length=0.1,
                 horizontalWidth=200,
                 verticalWidth=200,
                 apertureType="circular",
@@ -42,7 +42,7 @@ def make_T017_target_circular() :
                 outerMaterial="AIR")
     m.AddSamplerPlane(name="s1", length=1e-6)
     m.AddDrift(name="d2", length=1)
-    m.AddTarget(name="t2", length=1,
+    m.AddTarget(name="t2", length=0.1,
                 horizontalWidth=200,
                 verticalWidth=200,
                 apertureType="circular",
