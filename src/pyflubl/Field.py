@@ -28,6 +28,9 @@ class Field2D(Field) :
 
     >>> a = Field2D(data) # data is a prepared array
     >>> a.Write('outputFileName.inp')
+
+    :param data: Array of magnetic field data
+    :type data: numpy.ndarray(nx,ny,5)
     """
 
 

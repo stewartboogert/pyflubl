@@ -15,7 +15,17 @@ class ElementBase(_MutableMapping):
     and the representation that allows modification of existing parameters
     of an already declared item.
 
+    :param name: Name of the element
+    :type type: str
+    :param isMultipole: Flag to indicate if it is a multipole
+    :type isMultipole: bool
+    :param kwargs: kwargs for specific elements
+    :type kwargs: dict
+    :param _store: dict of key value pairs for element parameters
+    :type _store: dict[str,int/float/str]
+
     """
+
     def __init__(self, name, isMultipole=False, **kwargs):
         self._store = dict()
         self.name         = name
@@ -61,6 +71,12 @@ class ElementBase(_MutableMapping):
         return iter(self._store)
 
     def keysextra(self):
+        """
+        Get the extra keys
+
+        :return: extra keys
+        :rtype: dict[str,str/int/float]
+        """
         #so behaviour is similar to dict.keys()
         return self._keysextra
 
@@ -90,6 +106,19 @@ class ElementBase(_MutableMapping):
 
 class Element(ElementBase):
 
+    """
+    Class that represents the specification of an accelerator element
+
+    :param name: Name of the element
+    :type name: str
+    :param category: Category of the element
+    :type category: str
+    :param length: Length of the element in m
+    :type length: float
+    :param transform: Transform of the element (probably unused)
+    :type transform: numpy.ndarray(3,3)
+    :param geometry: Geoemtry for element (probably unused)
+    """
     _outer_allowed_keys = ["outerHorizontalSize","outerVerticalSize","outerMaterial",
                            "outerE1", "outerE2","outerP1", "outerP2"]
     _beampipe_allowed_keys = ["vacuumMaterial", "beampipeMaterial","beampipeRadius", "beampipeThickness",
@@ -116,7 +145,9 @@ class Element(ElementBase):
     _customflukafile_allowed_keys = ["geometryFile", "customOuterRegion", "customOuterBodies", "customRegions"]
     _sampler_plane_allowed_keys = ["samplerDiameter", "samplerMaterial", "samplerLength"]
 
-    def __init__(self, name = "element", category = None, length = 0.0,
+    def __init__(self, name : str = "element",
+                 category : str = None,
+                 length : float = 0.0,
                  transform = _np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]),
                  geometry = None,
                  **kwargs) :

@@ -11,21 +11,19 @@ Main package
 Core modules
 ------------
 
-.. automodule:: pyflubl.Builder
-
-.. automodule:: pyflubl.BuilderNew
+.. automodule:: pyflubl.Element
 
 .. automodule:: pyflubl.Coordinates
 
-.. automodule:: pyflubl.Element
+.. automodule:: pyflubl.BuilderNew
 
 .. automodule:: pyflubl.Field
 
 .. automodule:: pyflubl.GeometryGeant4
 
-.. automodule:: pyflubl.Line
-
 .. automodule:: pyflubl.Options
+
+.. automodule:: pyflubl.Line
 
 .. automodule:: pyflubl.Utilities
 

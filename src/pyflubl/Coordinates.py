@@ -4,8 +4,22 @@ import json as _json
 from .Element import Element as _Element
 from .Line import Line as _Line
 
-def _CalculateBoundingCuboidOriginCentred( width = 0.1, height = 0.1, length = 1.0):
-    # calculate the corners of the bounding cuboid
+def _CalculateBoundingCuboidOriginCentred( width : float = 0.1,
+                                           height : float = 0.1,
+                                           length : float = 1.0):
+    '''Calculate the corners of the bounding cuboid
+
+    :param width: width of the cuboid
+    :type width: float
+    :param height: height of the cuboid
+    :type height: float
+    :param length: length of the cuboid
+    :type length: float
+
+    :return: numpy.array(8,3)
+    :rtype: numpy.array
+
+    '''
 
     arb_r1 = _np.array([-length/2, -width/2, -height/2])
     arb_r2 = _np.array([-length/2,  width/2, -height/2])
@@ -342,8 +356,75 @@ def _CalculateElementTransformation(e):
                 "cub":tra,         "tra":tra}
 
 class Coordinates(object) :
+    """Class to calculate beamline coordinates for all elements. Coordinates
+    :math:`x` is horizontal, :math:`z` is beam direction and :math:`y` is skyward and
+    right-handed
+
+    :param sequence: list of :class:`pyflubl.Element.Element`
+    :type sequence: list[pyflubl.Element.Element]
+    :param elements: dict of :class:`pyflubl.Element.Element` with name as key
+    :type elements: dict[str,pyflubl.Element.Element]
+    :param element_name: list of :class:`pyflubl.Element.Element` names
+    :type element_name: list[str]
+    :param element_length: list of :class:'pyflubl.Element.Element' lengths
+    :type element_legnth: list[float]
+    :param element_theta: list of Element :math:`y`-rotation angles
+    :type element_theta: list[float]
+    :param element_psi: list of Element :math:`z`-rotation angles
+    :type element_psi: list[float]
+    :param element_choord_length: list of Element chord lengths (inportant for bends)
+    :type element_choord_length: list[float]
+
+    :param len_sta: list of element cumulative lengths at element start
+    :type len_sta: list[float]
+    :param len_mid: list of element cumulative lengths at element middle
+    :type len_mid: list[float]
+    :param len_end: list of element cumulative lengths at element end
+    :type len_end: list[float]
+
+    :param rot_sta: list of element cumulative rotation at element start
+    :type rot_sta: list[numpy.array[3,3]]
+    :param rot_mid: list of element cumulative rotation at element middle
+    :type rot_mid: list[numpy.array[3,3]
+    :param rot_end: list of element cumulative rotation at element end
+    :type rot_end: list[numpy.array[3,3]
+
+    :param arc_sta: list of element cumulative arc position at element start
+    :type arc_sta: list[numpy.array[3]]
+    :param arc_mid: list of element cumulative arc position at element middle
+    :type arc_mid: list[numpy.array[3]]
+    :param arc_end: list of element cumulative arc position at element end
+    :type arc_end: list[numpy.array[3]]
+
+    :param cho_sta: list of element cumulative chord position at element start
+    :type cho_sta: list[numpy.array[3]]
+    :param cho_mid: list of element cumulative chord position at element middle
+    :type cho_mid: list[numpy.array[3]]
+    :param cho_end: list of element cumulative chord position at element end
+    :type cho_end: list[numpy.array[3]]
+
+    :param s_sta: list of element cumulative :math:`s` at element start
+    :type s_sta: list[float]
+    :param s_mid: list of element cumulative :math:`s` at element middle
+    :type s_mid: list[float]
+    :param s_end: list of element cumulative :math:`s` at element end
+    :type s_end: list[float]
+
+    :param fac_sta: list of element face formal at element start
+    :type fac_sta: list[numpy.array[3]]
+    :param fac_end: list of element face formal at element end
+    :type fac_end: list[numpy.array[3]]
+
+    :param cub_loc: list of cubic bounding box corners in local coordinates
+    :type cub_loc: list[numpy.array[8,3]]
+    :param tra_loc: list of trapezoidal prism bounding volume corners in local coordinates
+    :type tra_loc: list[numpy.array[8,3]]
+
+    """
 
     def __init__(self):
+        '''Class to calculate beamline coordinates for all elements'''
+
         # units in m
 
         self.sequence = []
@@ -361,6 +442,8 @@ class Coordinates(object) :
         self.ibuild = 0
 
     def Clear(self):
+        '''Clear the internal variables used by the class'''
+
         self.element_name = []
         self.element_category = []
         self.element_length = []
@@ -368,9 +451,9 @@ class Coordinates(object) :
         self.element_psi = []
         self.element_chord_length = []
 
-        self.len_sta = [] # length along reference trajectory at start of element
-        self.len_mid = [] # length along reference trajectory at middle of element
-        self.len_end = [] # length along reference trajectory at end of element
+        self.len_sta = [] # length cumulative along reference trajectory at start of element
+        self.len_mid = [] # length cumulative along reference trajectory at middle of element
+        self.len_end = [] # length cumulative along reference trajectory at end of element
 
         self.rot_sta = [] # rotation of reference trajectory at start
         self.rot_mid = [] # rotation of reference trajectory at middle
@@ -399,7 +482,18 @@ class Coordinates(object) :
         self.cub = [] # cubical global
         self.tra = [] # trapezoidal prism global
 
-    def Append(self, item, addToSequence=True):
+    def Append(self,
+               item : _Element | _Line,
+               addToSequence : bool=True):
+        '''Append an item (Element/Line) to the machine
+
+        :param item: Element or Line to append
+        :type item: _Element
+        :param addToSequence: If True, append item to sequence, if False create but do not add. \
+               Needed for prototype/instance LATTICE creation
+        :type bool:
+        '''
+
         if not isinstance(item, (_Element, _Line)):
             msg = "Only Elements or Lines can be added to the machine"
             raise TypeError(msg)
@@ -422,7 +516,12 @@ class Coordinates(object) :
         return max(len(self.elements), len(self.element_name))
 
     def Build(self, circular = False):
+        """Iterate over the elements and populate the internal properties
 
+        :param circular: True for a circular machine
+        :type circular: bool
+
+        """
         self.Clear()
 
         for element_name in self.elements :
@@ -526,7 +625,15 @@ class Coordinates(object) :
             self.Build(circular)
 
 
-    def CalculateExtent(self):
+    def CalculateExtent(self, padLength : float=2):
+        """Calculate the cubical extent of the beamline geometry
+
+        :param padLength: Length in m to pad the geometry
+        :type padLength: float
+        :return: Bottom left and top right vertex position of the extent
+        :rtype: numpy.array(2,3)
+        """
+
         # TODO improve with extent of traps
 
         # loop over positions and find maxima
@@ -557,12 +664,20 @@ class Coordinates(object) :
             if zmax > vmax[2] :
                 vmax[2] = zmax
 
-        vmin = [x-2 for x in vmin]
-        vmax = [x+2 for x in vmax]
+        vmin = [x-padLength for x in vmin]
+        vmax = [x+padLength for x in vmax]
 
         return [vmin,vmax]
 
     def _CheckPoleFaces(self, circular = False):
+        """Loop over elements and verify element trapezoidal prisms have
+        no overlaps. Called at the end of Build().
+        
+        :param circular: Flag to inform if it is a circular manchine
+        :type circular: bool
+
+        """
+
         update = False
 
         for i, element_name in enumerate(self.elements) :
@@ -593,7 +708,16 @@ class Coordinates(object) :
 
         return update
 
-    def SaveJSON(self, file_name, indent = 0):
+    def SaveJSON(self,
+                 file_name : str,
+                 indent : int = 0):
+        """Save class as JSON file for plotting and later analysis
+
+        :param file_name: file name to write
+        :type file_name: str
+        :param indent: number of spaces in formatting the JSON file_name
+        :type indent: int
+        """
 
         self.Build()
 
@@ -639,6 +763,13 @@ class Coordinates(object) :
                 _json.dump(dict_to_save, f)
 
     def LoadJSON(self, file_name):
+        """Load JSON file into class. The element information is not populated
+
+        :param file_name: file name to load
+        :type file_name: str
+
+        """
+
         with open(file_name, "r") as f:
             data = _json.load(f)
 
@@ -678,6 +809,14 @@ class Coordinates(object) :
 
 
     def PandasDataFrame(self):
+        """Convert internal data to pandas dataframe
+
+        :return: pandas dataframe of the coordinates data
+        :rtype: pandas.DataFrame
+
+        """
+
+
         import pandas as pd
         df = pd.DataFrame()
         df['element_name'] = self.element_name

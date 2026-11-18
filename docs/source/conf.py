@@ -38,6 +38,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.todo']
 autodoc_default_options = {
     'members': True,
+    'private-members': True,  # includes _private methods
     'undoc-members': False,
     'show-inheritance': True,
 }
